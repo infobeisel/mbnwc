@@ -8,6 +8,18 @@ from ID_factions import *
 # that it will be easy to change it if you need to.
 ##############################################################
 
+
+########################################################
+##  Open World Constants ###############################
+########################################################
+multiplayer_event_travel_north  = 123
+multiplayer_event_travel_east   = 124
+multiplayer_event_travel_south  = 125
+multiplayer_event_travel_west   = 126
+
+
+
+
 ########################################################
 ##  ITEM SLOTS             #############################
 ########################################################
@@ -478,7 +490,7 @@ mm_destroyed_props_end       = "spr_mm_destroyed_props_end"
 
 mm_cannon_types_begin        = "spr_mm_cannon_12pdr"
 mm_cannon_types_end          = "spr_mm_cannons_end"
- 
+
 mm_cannon_wood_types_begin   = "spr_mm_cannon_12pdr_wood"
 mm_cannon_wood_types_end     = "spr_mm_cannon_12pdr_wheels"
 
@@ -730,7 +742,7 @@ cannon_command_fire         = 5
 cannon_command_stop_aim     = 6
 
 cannon_commands_begin         = cannon_command_up
-cannon_commands_end           = 7 
+cannon_commands_end           = 7
 
 
 kill_type_self          = 1
