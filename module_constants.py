@@ -12,10 +12,28 @@ from ID_factions import *
 ########################################################
 ##  Open World Constants ###############################
 ########################################################
-multiplayer_event_travel_north  = 123
-multiplayer_event_travel_east   = 124
-multiplayer_event_travel_south  = 125
-multiplayer_event_travel_west   = 126
+ow_multiplayer_event_travel  = 123
+ow_multiplayer_event_agent_equip_item = 124
+ow_multiplayer_event_master_player_joined_prsnt = 125
+
+
+ow_multiplayer_map_edge_entry_points = 40
+
+ow_multiplayer_map_travel_dir_north = 0
+ow_multiplayer_map_travel_dir_east = 1
+ow_multiplayer_map_travel_dir_south = 2
+ow_multiplayer_map_travel_dir_west = 3
+
+ow_menu_welcome_text_height = 100
+ow_menu_item_height = 40
+
+#scene arrays
+ow_multiplayer_scenes_begin = "scn_ow_scene_1"
+ow_multiplayer_scenes_end = "scn_ow_multiplayer_scenes_end"
+
+ow_multiplayer_scene_names_begin = "str_ow_scene_1"
+ow_multiplayer_scene_names_end = "str_ow_multiscene_names_end"
+
 
 
 

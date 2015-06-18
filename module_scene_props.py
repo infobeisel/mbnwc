@@ -16,6 +16,34 @@ import string
 #  5) Triggers: Simple triggers that are associated with the scene prop
 ####################################################################################################################
 
+
+
+  #OPEN WORLD----------------------------------------------------------------------------------------------------------
+
+check_travel_portal_use_trigger = (ti_on_scene_prop_use, [
+    (store_trigger_param_1, ":agent_id"),
+    (store_trigger_param_2, ":instance_id"),
+
+    (assign, reg0, ":agent_id"),
+    (agent_get_player_id,":player_id",":agent_id"),
+    (assign, reg1,  ":player_id"),
+
+    (display_message,"@!travel portal was activated by agent {reg0} by player {reg1}"),
+
+    #send event to client
+    (get_max_players, ":num_players"),
+    (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+        (eq, ":player_id",":player_no"),
+        #send unique player id
+        (player_get_unique_id,":unique_id",":player_id"),
+        (multiplayer_send_2_int_to_player, ":player_id", ow_multiplayer_event_travel, ":instance_id", ":unique_id"),
+    (try_end),
+])
+
+  #OPEN WORLD END------------------------------------------------------------------------------------------------------
+
+
+
 #MM
 check_mm_on_destroy_window_trigger = (ti_on_scene_prop_destroy,
   [
@@ -1215,66 +1243,25 @@ check_common_explosive_crate_use_trigger = (ti_on_scene_prop_use,
   ])
 
 
-  #OPEN WORLD----------------------------------------------------------------------------------------------------------
-
-check_travel_portal_use_trigger_north = (ti_on_scene_prop_use, [
-    (store_trigger_param_1, ":agent_id"),
-    (store_trigger_param_2, ":instance_id"),
-
-    (str_store_string, s0, ":agent_id"),
-    (agent_get_player_id,":player_id",":agent_id"),
-    (str_store_string, s1, ":player_id"),
-
-    (display_message,"@!travel portal was activated by agent {s0} by player {s1}"),
-
-    #save char in database
-
-    #send event to client
-    (try_for_range, ":tmp_player_id", 1, multiplayer_player_loops_end), #0 is server so starting from 1
-        (eq, ":player_id",":tmp_player_id"),
-        (multiplayer_send_2_int_to_player, ":player_id", multiplayer_event_travel_north, ":instance_id", ":agent_id"),
-    (try_end),
-])
-
-check_travel_portal_use_trigger_east = (ti_on_scene_prop_use, [
-    (store_trigger_param_1, ":agent_id"),
-    (store_trigger_param_2, ":instance_id"),
-
-    (str_store_string, s0, ":agent_id"),
-    (agent_get_player_id,s1,":agent_id"),
-
-    (display_message,"@!travel portal was activated by agent {s0} by player {s1}"),
-
-])
-
-check_travel_portal_use_trigger_south = (ti_on_scene_prop_use, [
-    (store_trigger_param_1, ":agent_id"),
-    (store_trigger_param_2, ":instance_id"),
-
-    (str_store_string, s0, ":agent_id"),
-    (agent_get_player_id,s1,":agent_id"),
-
-    (display_message,"@!travel portal was activated by agent {s0} by player {s1}"),
-
-])
-
-check_travel_portal_use_trigger_west = (ti_on_scene_prop_use, [
-    (store_trigger_param_1, ":agent_id"),
-    (store_trigger_param_2, ":instance_id"),
-
-    (str_store_string, s0, ":agent_id"),
-    (agent_get_player_id,s1,":agent_id"),
-
-    (display_message,"@!travel portal was activated by agent {s0} by player {s1}"),
-
-])
-
-
-
-  #OPEN WORLD END------------------------------------------------------------------------------------------------------
-
 
 scene_props = [
+
+#OPEN WORLD---------------------------------------------------------------------------------------------------------------------------
+     ("travel_passage_north",sokf_invisible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a",[check_travel_portal_use_trigger,
+     ]),
+     ("travel_passage_east",sokf_invisible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a",[check_travel_portal_use_trigger,
+     ]),
+     ("travel_passage_south",sokf_invisible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a",[check_travel_portal_use_trigger,
+     ]),
+     ("travel_passage_west",sokf_invisible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a",[check_travel_portal_use_trigger,
+     ]),
+
+#OPEN WORLD END ----------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
   ("invalid_object",0,"question_mark","0", []),
   ("inventory",sokf_type_container|sokf_place_at_origin,"0","bobaggage", []),
   ("empty", 0, "0", "0", []),
