@@ -3484,7 +3484,7 @@ mission_templates = [
         #get player unique id and player username to get a unique key for the database
         (player_get_unique_id, ":unique_player_id", ":new_player_player_no"),
         ##send the player his unique id
-        (multiplayer_send_int_to_player, ":new_player_player_no", ow_multiplayer_event_master_player_joined_prsnt,":unique_player_id"),
+        (multiplayer_send_2_int_to_player, ":new_player_player_no", ow_multiplayer_event_master_player_joined_prsnt,":unique_player_id",ow_worldinstance),
 
 
     ]),
@@ -3581,22 +3581,27 @@ mission_templates = [
 
 
     ],[
+
+     (ti_on_player_exit, 0, 0, [],
+		[
+        (store_trigger_param_1, ":player_no"),
+        (player_get_unique_id, ":unique_player_id", ":player_no"),
+        (str_store_player_username, s0, ":player_no"),
+        (call_script,"script_db_reverse_slot",":unique_player_id",s0),
+		]),
     (ti_server_player_joined, 0, 0, [],
     [
         (store_trigger_param_1, ":new_player_player_no"),
     #we have to be on server side now
         (multiplayer_is_server),
         (player_get_unique_id, ":unique_player_id", ":new_player_player_no"),
-
-
-        ##player data request. url receiver will spawn agent.
-        (call_script,"script_db_load_player_data",":unique_player_id",":new_player_player_no"),
+        (str_store_player_username, s0, ":new_player_player_no"),
+        (call_script,"script_db_load_player_data",":unique_player_id",":new_player_player_no",ow_db_callback_handle_join),#will do the rest
     ]),
 
     (ti_on_agent_spawn, 0, 0, [],
     [
         (store_trigger_param_1, ":agent_no"),
-
     #directive to the local client and his exe: server joined
         (try_begin),
             (neg|multiplayer_is_server),
@@ -3605,17 +3610,6 @@ mission_templates = [
             (eq,":player_id",":my_player_id"),#if i am the one who joined recently
             (str_store_string,s1,"@joined server"),
         (try_end),
-
-    #we are on server for moment
-        (multiplayer_is_server),
-        (agent_get_item_id, ":horse_id",":agent_no"),
-        (eq,":horse_id",-1),#if this is not a horse, go on...
-        ##load player's inventory out of db and equip agent (see url script)
-        (agent_get_player_id,":player_id",":agent_no"),
-        (player_get_unique_id, ":unique_player_id", ":player_id"),
-        (str_store_player_username, s10, ":player_id"),#2nd arg for next function
-        (call_script,"script_db_load_agent",":unique_player_id",":player_id"),
-
     ]),
     (ti_after_mission_start, 0, 0, [],
     [

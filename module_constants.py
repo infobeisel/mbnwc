@@ -12,17 +12,42 @@ from ID_factions import *
 ########################################################
 ##  Open World Constants ###############################
 ########################################################
+#game engine events
 ow_multiplayer_event_travel  = 123
 ow_multiplayer_event_agent_equip_item = 124
 ow_multiplayer_event_master_player_joined_prsnt = 125
 
+#database events
+ow_db_event_load_player = 7
+ow_db_event_insert_player = 1
+ow_db_event_update_player = 3
+ow_db_event_update_inventory = 5
+ow_db_event_load_inventory = 2
+ow_db_event_load_agent = 4
+ow_db_event_update_agent = 6
+ow_db_event_reserve_slot = 9
+ow_db_event_reverse_slot = 13
+ow_db_event_get_maps = 8
+ow_db_event_update_travel = 10
+ow_db_event_load_travel = 11
+ow_db_event_update_map = 12
+
+#configurables (should be located maybe in "module_variables"
+ow_worldinstance = 0
+
+#callbacks
+ow_db_callback_reserve_slot = 0
+ow_db_callback_handle_join = 1
+ow_db_callback_set_lobby_presentations = 2
 
 ow_multiplayer_map_edge_entry_points = 40
 
-ow_multiplayer_map_travel_dir_north = 0
+ow_multiplayer_map_travel_dir_north = 0 #the player travels in this direction
 ow_multiplayer_map_travel_dir_east = 1
 ow_multiplayer_map_travel_dir_south = 2
 ow_multiplayer_map_travel_dir_west = 3
+ow_multiplayer_map_travel_for_prison = 4 # the player travels to go to the prison
+ow_multiplayer_map_travel_for_spawn_selection = 5 # the player travels and wants to get the spawn selection dialog
 
 ow_menu_welcome_text_height = 100
 ow_menu_item_height = 40

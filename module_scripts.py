@@ -25,6 +25,9 @@ scripts = [
 
 #OPEN WORLD-------------------------------------------------------------------------------------------------------------
 
+
+#TODO differ between db_act_ and db_react_ functions (first type sends a request, second type reacts on the respond and gets called in the url_receive method)
+
     #script_get_nearest_entry_point_to_pos
     #INPUT: posx,posy,posz
     #OUTPUT: entry_point_no in reg0
@@ -64,58 +67,147 @@ scripts = [
         (assign,reg0,":ret"),
     ]),
 
-    #script_db_load_player_data
-    #INPUT: unique player_id, local_player_id
-    #does sql select on webserver, then spawns the player (see url_receive_response) for return vals
+    ##THE PLAYER
+    #script_db_load_player
+    #INPUT: unique player_id, username in s0, local_id,callback_id
+    #loads all player-specific data out of the database, including his traveldata, inventory,agentdata,last map where he spawned etc.
     ("db_load_player_data",[
         (store_script_param_1, ":unique_player_id"),
-        (store_script_param_2, ":local_player_id"),
+        #s0 contains player name
+        (store_script_param_2, ":local_id"),
+        (store_script_param, ":callback_id", 3),
         (assign,reg0,":unique_player_id"),
-        (assign,reg1,":local_player_id"),
+        (assign,reg1,":local_id"),
+        (assign,reg2,":callback_id"),
+        (assign,reg3,ow_db_event_load_player),
+        (str_store_string,s1,"str_ow_webserver_url"),
         (display_message,"@db_load_player_data executed with uid {reg0} and local id {reg1}"),
-        (str_store_player_username, s10, ":local_player_id"),
-        (str_store_string,s0,"str_ow_webserver_url"),
-        (send_message_to_url,"@{s0}?uniqueid={reg0}&localid={reg1}&event=7&username={s10}"),#send http request
-        (display_message,"@sent message: {s0}?uniqueid={reg0}&localid={reg1}&event=7&username={s10}" ),
-        #(send_message_to_url, "@http://127.0.0.1/example.php?unique_id={reg1}&local_id={reg0}&event=2&username={s0}&gold={reg2}"),
+        (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}"),#send http request
+        (display_message,"@sent message: {s0}?uniqueid={reg0}&localid={reg1}&event=7&username={s0}&callbackid={reg2}" ),
     ]),
 
 
     #script_db_insert_player_if_not_exists
-    # INPUT: unique_player_id, local_player_id player_username in s0
-    # creates a new player in the database if not already existent and echoes which case occurred (see receive_url_response)
-    ("db_insert_player_if_not_exists",[
+    # INPUT: unique_player_id,username in s0, local_id, callback_id,worldinstanceid
+    # creates a new player in the database if not already existent and echoes which case occurred
+    ("db_insert_player_if_not_exist",[
         (store_script_param_1, ":unique_player_id"),
-        (store_script_param_2, ":local_player_id"),
+         #s0 contains player name
+        (store_script_param_2, ":local_id"),
+        (store_script_param, ":callback_id", 3),
+        (store_script_param, ":worldinstanceid", 4),
         (assign,reg0,":unique_player_id"),
-        (assign,reg1,":local_player_id"),
-        (display_message,"@db_insert_player executed with uid {reg0} and username {s0} and local id : {reg1}"),
-        (str_store_string,s10,"str_ow_webserver_url"),
-        (send_message_to_url,"@{s10}?uniqueid={reg0}&event=1&username={s0}&localid={reg1}"),#send http request
+        (assign,reg1,":local_id"),
+        (assign,reg2,":callback_id"),
+        (assign,reg3,ow_db_event_insert_player),
+        (assign,reg4,":worldinstanceid"),
+        (str_store_string,s1,"str_ow_webserver_url"),
+        (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}&worldinstanceid={reg4}"),#send http request
 
     ]),
 
-    #script_db_update_player
-    # INPUT: unique_player_id, team_id,troop_id; player_username in s0,
-    #saves player-related data in master server's database
-    #player_get_unique_id
-    ("db_update_player",[
-        (store_script_param_1, reg0),
-        (store_script_param, reg1, 2),
-        (store_script_param, reg2, 3),
-        #do a post request saving the player
-        (display_message,"@db_update_player executed"),
+    ##PLAYER END
+
+    ##THE AGENT
+    #script_db_change_agent
+    #INPUT: unique_id,username in s0,local_id,team_id,troop_id,relative hit points
+    # changes the given player's agent attributes in the database
+    ("db_change_agent",[
+        (store_script_param_1, ":unique_player_id"),
+        #username in s0
+        (store_script_param, ":local_id", 2),
+        (store_script_param, ":team_id", 3),
+        (store_script_param, ":troop_id", 4),
+        (store_script_param, ":hit_points", 5),
+        (assign,reg0,":unique_player_id"),
+        (assign,reg1,":team_id"),
+        (assign,reg2,":troop_id"),
+        (assign,reg3,":hit_points"),
+        (assign,reg10,ow_db_event_update_agent),
         (str_store_string,s10,"str_ow_webserver_url"),
-        (send_message_to_url,"@{s10}?uniqueid={reg0}&event=3&username={s0}&teamid={reg1}&troopid={reg2}"),#send update http request
+        (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&teamid={reg1}&troopid={reg2}&hitpoints={reg3}"),#send http request
     ]),
+    #script_db_update_agent
+    #INPUT: unique_id,username in s0,local_id
+    # takes agent attributes out of given player's agent and updates them in the db
+    ("db_update_agent",[
+        (store_script_param_1, ":unique_player_id"),
+        #username in s0
+        (store_script_param, ":local_id", 2),
+        (player_get_agent_id,":agent_id",":local_id"),
+        (try_begin),
+            (ge,":agent_id",0),
+            (agent_get_team, reg1, ":agent_id"),
+            (agent_get_troop_id, reg2, ":agent_id"),
+            (store_agent_hit_points, reg3, ":agent_id", 0),
+            (assign,reg0,":unique_player_id"),
+            (assign,reg10,ow_db_event_update_agent),
+            (str_store_string,s10,"str_ow_webserver_url"),
+            (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&teamid={reg1}&troopid={reg2}&hitpoints={reg3}"),#send http request
+        (try_end),
+    ]),
+    #script_db_load_agent
+    #INPUT: unique_id,username in s0,local_id,callback_id
+    # loads given player's agent
+    ("db_load_agent",[
+        (store_script_param_1, ":unique_player_id"),
+        #s0 contains player name
+        (store_script_param_2, ":local_id"),
+        (store_script_param, ":callback_id", 3),
+        (assign,reg0,":unique_player_id"),
+        (assign,reg1,":local_id"),
+        (assign,reg2,":callback_id"),
+        (assign,reg3,ow_db_event_load_agent),
+        (str_store_string,s1,"str_ow_webserver_url"),
+        (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}"),#send http request
+    ]),
+    ##AGENT END
+
+
+    ##THE INVENTORY
 
     #script_db_update_inventory
-    # INPUT:  unique_player_id, player_username in s0,reg0-8: equipment + horse
-    #saves player-related data in master server's database (inventory)
+    # INPUT:  unique_player_id, player_username in s0, local_id
+    # retrieves information about the equipment and inventory of the given player's agent and updates it into the database
     #player_get_unique_id
     ("db_update_inventory",[
         (store_script_param_1, ":unique_player_id"),
+        #username in s0
+        (store_script_param, ":local_id", 2),
         (assign,reg0,":unique_player_id"),
+        (player_get_agent_id,":agent_id",":local_id"),
+        (try_begin),
+            (ge,":agent_id",0),
+            (agent_get_item_slot, reg1, ":agent_id", 0),
+            (agent_get_item_slot, reg2, ":agent_id", 1),
+            (agent_get_item_slot, reg3, ":agent_id", 2),
+            (agent_get_item_slot, reg4, ":agent_id", 3),
+            (agent_get_item_slot, reg5, ":agent_id", 4),
+            (agent_get_item_slot, reg6, ":agent_id", 5),
+            (agent_get_item_slot, reg7, ":agent_id", 6),
+            (agent_get_item_slot, reg8, ":agent_id", 7),
+            (agent_get_horse, reg9,":agent_id"),
+            (try_begin),
+                (neq,agent_get_item_id,-1),
+                (agent_get_item_id, reg9, reg9),
+            (try_end),
+            (assign,reg10,ow_db_event_update_inventory),
+            #do a post request saving the inventory
+            (display_message,"@db_update_inventory executed with uid {reg0} and username {s0}"),
+            (str_store_string,s10,"str_ow_webserver_url"),
+            (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}"),#send http request
+        (try_end),
+    ]),
+
+    #db_change_inventory
+    # INPUT:  unique_player_id, player_username in s0,reg0-8: equipment + horse
+    # changes invevntory of given player to given values
+    #player_get_unique_id
+    ("db_change_inventory",[
+        (store_script_param_1, ":unique_player_id"),
+        #username in s0
+        (assign,reg0,":unique_player_id"),
+
         (store_script_param, reg1, 2),
         (store_script_param, reg2, 3),
         (store_script_param, reg3, 4),
@@ -125,65 +217,209 @@ scripts = [
         (store_script_param, reg7, 8),
         (store_script_param, reg8, 9),
         (store_script_param, reg9, 10),
+        (assign,reg10,ow_db_event_update_inventory),
         #do a post request saving the inventory
         (display_message,"@db_update_inventory executed with uid {reg0} and username {s0}"),
         (str_store_string,s10,"str_ow_webserver_url"),
-        (send_message_to_url,"@{s10}?uniqueid={reg0}&event=5&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}"),#send http request
+        (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}"),#send http request
     ]),
-    #script_db_load_agent
-    # INPUT: unique_player_id,local_player_id
+
+
+    #script_db_load_inventory
+    # INPUT: unique_player_id,username in s0,local_id,callback_id
     # OUTPUT:  reg0-8: equipment + horse
-    #loads agent-related data from master server's database, server-sided
-    ("db_load_agent",[
+    # loads inventory of given player's agent and returns it
+    ("db_load_inventory",[
+
         (store_script_param_1, ":unique_player_id"),
-        (store_script_param_2, ":local_player_id"),
+         #s0 contains player name
+        (store_script_param_2, ":local_id"),
+        (store_script_param, ":callback_id", 3),
         (assign,reg0,":unique_player_id"),
-        (assign,reg1,":local_player_id"),
-
-        #do a get request loading the char inventory and gold
-        (display_message,"@script_db_load_agent executed"),
-        (str_store_string,s10,"str_ow_webserver_url"),
-        (str_store_player_username, s0, ":local_player_id"),
-        (send_message_to_url,"@{s10}?uniqueid={reg0}&localid={reg1}&event=2&username={s0}"),#send http request
-
-#        ##DUMMY
-#        (assign,reg0,"itm_knife"),
-#        (assign,reg1,"itm_pitch_fork"),
-#        (assign,reg2,"itm_stones"),
-#        (assign,reg3,"itm_hammer"),
-#        (assign,reg4,"itm_felt_hat"),
-#        (assign,reg5,"itm_linen_tunic"),
-#        (assign,reg6,"itm_nomad_boots"),
-#        (assign,reg7,"itm_leather_gloves"),
-#        (assign,reg8,"itm_warhorse_sarranid"),
+        (assign,reg1,":local_id"),
+        (assign,reg2,":callback_id"),
+        (assign,reg3,ow_db_event_load_inventory),
+        (display_message,"@ow_db_event_load_inventory executed "),
+        (str_store_string,s1,"str_ow_webserver_url"),
+        (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}"),#send http request
     ]),
 
-    #script_db_update_current_location
-    #INPUT unique_player_id,  current scene id, player_username in s0,
+    ##INVENTORY END
+
+    #script_db_reserve_slot
+    #INPUT unique_id, username in s0, local_id,callback_id,location:directions 0-3, others possible in further versions
+    #tries to reserve a slot at target server, given the current evaluated map name and the given direction
+    ("db_reserve_slot",[
+
+        (store_script_param_1, ":unique_player_id"),
+         #s0 contains player name
+        (store_script_param_2, ":local_id"),
+        (store_script_param, ":callback_id", 3),
+        (store_script_param, ":location", 4),
+        (assign,reg0,":unique_player_id"),
+        (assign,reg1,":local_id"),
+        (assign,reg2,":callback_id"),
+        (assign,reg3,ow_db_event_reserve_slot),
+        (assign,reg4,":location"),
+        (str_store_string,s1,"str_ow_webserver_url"),
+        (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}&location={reg4}"),#send http request
+    ]),
+
+    #script_db_reverse_slot
+    #INPUT: unique_id,username in s0
+    #reverses (deletes) given player's slot at the server he is currently located on (after knowledge of database)
+    ("db_reverse_slot",[
+        (store_script_param_1, ":unique_player_id"),
+         #s0 contains player name
+        (assign,reg0,":unique_player_id"),
+        (assign,reg3,ow_db_event_reverse_slot),
+        (str_store_string,s1,"str_ow_webserver_url"),
+        (send_message_to_url,"@{s1}?uniqueid={reg0}&event={reg3}&username={s0}"),#send http request
+    ])
+
+    ##CALLBACKS
+    #script_callback_slot_reserved
+    #INPUT localid,direction/location,reserved
+    # if reserving was successful, let the player travel, if not, not.
+    ("db_callback_reserve_slot",[
+        (store_script_param_1, ":local_id"),
+        (store_script_param_2, ":dir"),
+        (store_script_param, ":reserved", 3),
+        (try_begin),
+            (eq,":reserved",1),
+            (player_get_agent_id,":agent_id",":local_id"),
+            (call_script,"script_travel_to",":dir",":agent_id"),
+        (else_try),
+            ##TODO ERROR DIALOG
+            (display_message,"@ERROR:SERVER FULL"),
+        (try_end),
+    ]),
+
+    #script_db_callback_handle_join
+    # decides what to do with joined player and do it.
+    #INPUT: player_id,current_map_id,travel_flag(=direction),posx,posy,posz,team,troop,hitpoints,9x inventory
+    ("db_callback_handle_join",[
+        (store_script_param,":local_player_id",1),
+        (store_script_param,":current_map_id",2),
+        (store_script_param,":direction",3),
+        (store_script_param,":posx",4),
+        (store_script_param,":posy",5),
+        (store_script_param,":posz",6),
+        (store_script_param,":team_id",7),
+        (store_script_param,":troop_id",8),
+        (store_script_param,":hitpoints",9),
+        (store_script_param,":w1",10),
+        (store_script_param,":w2",11),
+        (store_script_param,":w3",12),
+        (store_script_param,":w4",13),
+        (store_script_param,":head",14),
+        (store_script_param,":body",15),
+        (store_script_param,":leg",16),
+        (store_script_param,":hand",17),
+        (store_script_param,":horse",18),
+        ##POSITION
+        #if he came from the south, negate the y coordinate, if he came from east, the x...
+        (get_scene_boundaries,pos0,pos1),#1st is min, 2nd is max
+        (try_begin),
+            (store_add, ":temp", ow_multiplayer_map_travel_dir_west,1),
+            (is_between, ":direction", ow_multiplayer_map_travel_dir_north, ":temp"),#the player traveled here coming from a neighbour map
+            (try_begin),
+                (eq,":direction",ow_multiplayer_map_travel_dir_north), #came from south
+                (position_get_y, ":posy", pos0),
+            (try_end),
+            (try_begin),
+                (eq,":direction",ow_multiplayer_map_travel_dir_east),#came from west
+                (position_get_x, ":posx", pos0),
+            (try_end),
+            (try_begin),
+                (eq,":direction",ow_multiplayer_map_travel_dir_south),#came from north
+                (position_get_y, ":posy", pos1),
+            (try_end),
+            (try_begin),
+                (eq,":direction",ow_multiplayer_map_travel_dir_west),#came from east
+                (position_get_x, ":posx", pos1),
+            (try_end),
+            #evaluate spawn position
+            (call_script,"script_get_nearest_entry_point_to_pos",":posx",":posy",":posz"),
+            (assign,":spawn_entry_point",reg0), #ret from function above
+            ##SPAWN
+            (player_set_team_no, ":local_player_id",":team_id"),
+            (player_set_troop_id, ":local_player_id", ":troop_id"),
+            #equip the agent:
+            #equipment slots
+            #ek_item_0 = 0
+            #ek_item_1 = 1
+            #ek_item_2 = 2
+            #ek_item_3 = 3
+            #ek_head   = 4
+            #ek_body   = 5
+            #ek_foot   = 6
+            #ek_gloves = 7
+            #ek_horse  = 8
+            #ek_food   = 9
+            (try_begin),
+                (neq,":horse",-1),
+                (player_add_spawn_item,":local_player_id", ek_horse,":horse"),
+            (try_end),
+            (player_add_spawn_item, ":local_player_id", ek_item_0, ":w1"),
+            (player_add_spawn_item, ":local_player_id", ek_item_1, ":w2"),
+            (player_add_spawn_item, ":local_player_id", ek_item_2, ":w3"),
+            (player_add_spawn_item, ":local_player_id", ek_item_3, ":w4"),
+            (player_add_spawn_item, ":local_player_id", ek_head, ":head"),
+            (player_add_spawn_item, ":local_player_id", ek_body, ":body"),
+            (player_add_spawn_item, ":local_player_id", ek_foot, ":leg"),
+            (player_add_spawn_item, ":local_player_id", ek_gloves, ":hand"),
+            (player_spawn_new_agent,  ":local_player_id", ":spawn_entry_point"),
+            (player_get_agent_id,":agent_id",":local_player_id"),
+            (agent_set_hit_points, ":agent_id", ":hitpoints"),
+
+        #else prison/rejoin etc.
+        (try_end),
+    ]),
+
+    #script_db_callback_set_lobby_presentations
+    # starts entry presentations for the player
+    #INPUT
+    ("db_callback_set_lobby_presentations",[
+        (store_script_param,":known",0),
+        (try_begin),#not known
+            (eq,":known",0),
+            (start_presentation, "prsnt_ow_multiplayer_team_select"),
+        (else_try),#known
+            (display_message,"@welcome, known player!"),
+        (try_end),
+
+    ]),
+
+    ##CALLBACKS END
+
+    #script_db_change_current_map
+    #INPUT unique_player_id,player_username in s0,  current scene id,
     #saves given player_id's current server in db (where he is currently joined)
-    ("db_update_current_location",[
+    ("db_change_current_map",[
         (store_script_param_1, ":unique_player_id"),
         (store_script_param_2, ":map_id"),
         (assign, reg0,":unique_player_id"),
         (assign, reg1,":map_id"),
-        #do a post request saving current server where player is on.
-        (display_message,"@script_db_update_current_location executed"),
         (str_store_string,s10,"str_ow_webserver_url"),
-        (send_message_to_url,"@{s10}?uniqueid={reg0}&event=6&username={s0}&mapid={reg1}"),#send http request
+        (assign,reg3,ow_db_event_update_map),
+        (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg3}&username={s0}&mapid={reg1}"),#send http request
 
     ]),
 
-    #script_db_update_travel
-    #INPUT unique_player_id,  player_username in s0,agent_id,int direction
-    #saves given agent's current position and given int direction into the database, server sided
-    ("db_update_travel",[
+    #script_db_change_travel
+    #INPUT unique_player_id,  player_username in s0,local_id,int travelflag
+    #saves given agent's current position and given int travelflag into the database, server sided
+    ("db_change_travel",[
         (store_script_param_1, reg0),
         (store_script_param, reg1, 2),
         (store_script_param, reg2, 3),
         (init_position,pos0),
+        (player_get_agent_id,reg1,reg1),
         (try_begin),
             (gt,reg1,0),#if valid agent
             (agent_get_position,pos0,reg1),
+
         (try_end),
         (position_get_x,reg3,pos0),
         (position_get_y,reg4,pos0),
@@ -196,6 +432,17 @@ scripts = [
         (display_message,"@script_db_save_travel executed"),
     ]),
 
+    #script_db_load_travel
+    #INPUT unique_player_id, username in s0,local_id,callback_id
+    #loads the travel data out of the database
+    ("db_load_travel",[
+        (store_script_param_1, reg0),
+        (store_script_param, reg1, 2),
+        (store_script_param, reg2, 3),
+        (str_store_string,s10,"str_ow_webserver_url"),
+        (assign,reg3,ow_db_event_load_travel),
+        (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg3}&username={s0}&localid={reg1}&callbackid={reg2}"),#send http request
+    ]),
 
     #script_travel_to
     #INPUT int direction, agent_id
@@ -206,7 +453,7 @@ scripts = [
         #do the directives for the client.exe
         (display_message,"@script_travel_to executed"),
         (try_begin),#if agent id is valid
-            (gt,":agent_id",0),#if valid agent
+            (ge,":agent_id",0),#if valid agent
             (agent_fade_out, ":agent_id"),
         (try_end),
         #directives
@@ -238,7 +485,7 @@ scripts = [
     #script_equip_player_agent
     #INPUT agent_id, 9x int equipment (may be -1): first the 4 weapons then head_armor, body_armor,leg_armor,hand_armor,Horse
     #OUTPUT r0 agent reference
-    #replaces his equipment with given one (if an int == 0, leave equipment as is)
+    #replaces his equipment with given one (if an int == -1, leave equipment as is, TODO -2 delete it)
     ("equip_player_agent",[
         (store_script_param_1, ":agent_id"),
         (store_script_param, ":w1", 2),
@@ -350,32 +597,21 @@ scripts = [
     #INPUT agent_id, item_id
     #equips item and inform all clients about it so that they can update their local agents. DO ONLY FOR HEAD LEG BODY OR HAND !!!
     ("agent_equip_item",
-    [(store_script_param, ":agent_id", 1),
-    (store_script_param, ":item_id", 2),
-
-    (try_begin),
-      ##TODO DOESN'T WORK.
-      (multiplayer_is_server), # this script should only be called on the server, so this check is just to make sure
-      (agent_equip_item, ":agent_id", ":item_id"), # for the server combat calculations
-      (get_max_players, ":max_players"),
-      (try_for_range, ":player_id", 1, ":max_players"), # start at 1, since 0 is the server
-        (player_is_active, ":player_id"),
-        (multiplayer_send_2_int_to_player, ":player_id", ow_multiplayer_event_agent_equip_item, ":agent_id", ":item_id"),
-      (try_end),
-    (try_end),
+    [(
+        store_script_param, ":agent_id", 1),
+        (store_script_param, ":item_id", 2),
+        (try_begin),
+          (multiplayer_is_server), # this script should only be called on the server, so this check is just to make sure
+          (agent_equip_item, ":agent_id", ":item_id"), # for the server combat calculations
+          (get_max_players, ":max_players"),
+          (try_for_range, ":player_id", 1, ":max_players"), # start at 1, since 0 is the server
+            (player_is_active, ":player_id"),
+            (multiplayer_send_2_int_to_player, ":player_id", ow_multiplayer_event_agent_equip_item, ":agent_id", ":item_id"),
+          (try_end),
+        (try_end),
     ]),
 
 
-    #script_db_get_map_name_in_dir
-    #INPUT unique player id,  player_username in s0, int direction
-    #OUTPUT s0 newMapName
-    #CLIENT SIDED, takes the mapname of next server in given direction
-    ("db_get_map_name_in_dir",[
-        (store_script_param_1, ":unique_player_id"),
-        (store_script_param, ":direction", 2),
-        #do a get request loading the name of the next map in given direction seen from the world map tile the given player is located on
-        (display_message,"@script_db_get_map_name_in_dir executed"),
-    ]),
 #OPEN WORLD END---------------------------------------------------------------------------------------------------------
 
 
@@ -5190,101 +5426,21 @@ scripts = [
     (display_message,"@url response regs: {s0},{reg0},{reg1},{reg2},{reg3},{reg4},{reg5},{reg6},{reg7},{reg8},{reg9},{reg10},{reg11}"),
     #(display_message,"@url response str regs: {s0},{s1},{s2},{s3},{s4},{s5}..."),
     (assign,":fired_event",reg0),
+    (assign,":callback_id",reg1),
     (try_begin),
-        (eq,":fired_event",7),#that was the get player data event!
-        (assign,":unique_player_id",reg1),
-        (assign,":local_player_id",reg2),
-        (assign,":team_id",reg3),
-        (assign,":troop_id",reg4),
-        (assign,":horse",reg5),#need horse heres to spawn agent directly on the horse...
-        (assign,":direction",reg6),#get his old position and the direction in which he traveled
-        (assign,":posx",reg7),
-        (assign,":posy",reg8),
-        (assign,":posz",reg9),
-        (str_store_player_username, s10, ":local_player_id"),
-        ##POSITION
-        #if he came from the south, negate the y coordinate, if he came from east, the x...
-        (get_scene_boundaries,pos0,pos1),#1st is min, 2nd is max
+        (eq,":fired_event",ow_db_event_load_player),#that was the get player data event!
         (try_begin),
-            (eq,":direction",ow_multiplayer_map_travel_dir_north), #came from south
-            (position_get_y, ":posy", pos0),
+            (eq,":callback_id",ow_db_callback_handle_join),#player joined common server and wants to join the battle.let callback decide what to do
+            (call_script,"script_db_callback_handle_join",reg3,reg4,reg5,reg6,reg7,reg8,reg9,reg10,reg11,reg12,reg13,reg14,reg15,reg16,reg17,reg18,reg19,reg20),   #reg0=event,reg1=callbackid,reg2=uid, so the rest is the right arguments
         (try_end),
-        (try_begin),
-            (eq,":direction",ow_multiplayer_map_travel_dir_east),#came from west
-            (position_get_x, ":posx", pos0),
-        (try_end),
-        (try_begin),
-            (eq,":direction",ow_multiplayer_map_travel_dir_south),#came from north
-            (position_get_y, ":posy", pos1),
-        (try_end),
-        (try_begin),
-            (eq,":direction",ow_multiplayer_map_travel_dir_west),#came from east
-            (position_get_x, ":posx", pos1),
-        (try_end),
-        #evaluate spawn position
-        (call_script,"script_get_nearest_entry_point_to_pos",":posx",":posy",":posz"),
-        (assign,":spawn_entry_point",reg0), #ret from function above
-
-        ##GET PLAYER DATA & SPAWN
-        (player_set_team_no, ":local_player_id",":team_id"),
-        (player_set_troop_id, ":local_player_id", ":troop_id"),
-        (try_begin),
-            (neq,":horse",-1),
-            (player_add_spawn_item,":local_player_id", ek_horse,":horse"),
-        (try_end),
-        (player_spawn_new_agent,  ":local_player_id", ":spawn_entry_point"),
-        (player_get_agent_id,":agent_id",":local_player_id"),
-
-
-        (display_message,"@player spawned!"),
-        ##DIRECTIVE TO THE
-        (display_message,"@spawn player's agent called"),
     (else_try),
-        (eq,":fired_event",1),#that was the insert new player event!
-        #note: we are on client side now
-        (assign,":unique_player_id",reg1),
-        (assign,":local_player_id",reg2),
+        (eq,":fired_event",ow_db_event_insert_player),#that was the insert new player event!
+        (try_begin),
+            (eq,":callback_id",ow_db_callback_set_lobby_presentations)#we are in the lobby and have to show some presentations
+            (call_script,"script_db_callback_set_lobby_presentations",reg3,-1),#reg0:event, reg1:callback,reg2:uid,reg3:localid and finally reg4 = newplayer/knownplayer
+        (try_end),
 
-        (assign,":chosen_team",0),
-        (assign,":chosen_troop","trp_british_ship"),
 
-        (str_store_player_username,s0,":local_player_id"),
-        (call_script,"script_db_update_player",":unique_player_id",":chosen_team",":chosen_troop"),#update player data
-        #store inventory/agent
-        (assign, ":w1", "itm_iroquois_warrior_axe"),
-        (assign, ":w2", "itm_1728_rifle"),
-        (assign, ":w3", "itm_war_chief_axe"),
-        (assign, ":w4", "itm_bullets"),
-        (assign, ":head", -1),
-        (assign, ":body", -1),
-        (assign, ":leg", -1),
-        (assign, ":hand", -1),
-        (assign,":horse",-1),
-
-        (str_store_player_username, s0, ":local_player_id"),
-        (call_script,"script_db_update_inventory",":unique_player_id",":w1",":w2",":w3",":w4",":head",":body",":leg",":hand", ":horse"),
-
-        (str_store_player_username,s0,":local_player_id"),
-        (display_message, "@does str_store_player_username work on client? {so}"),
-        (call_script,"script_db_update_travel",":unique_player_id",0,-1),#save travel without agent and in direction -1
-        (call_script,"script_travel_to",-1,-1),#exec script without agent id (no agent will be deleted)
-
-    (else_try),
-        (eq,":fired_event",2),#that was the get agent data event!
-        (assign,":unique_player_id",reg1),
-        (assign,":local_player_id",reg2),
-        (assign, ":w1", reg3),
-        (assign, ":w2", reg4),
-        (assign, ":w3", reg5),
-        (assign, ":w4", reg6),
-        (assign, ":head", reg7),
-        (assign, ":body", reg8),
-        (assign, ":leg", reg9),
-        (assign, ":hand", reg10),
-        (assign,":horse",reg11),
-        #equip the agent:
-        (player_get_agent_id, ":agent_id", ":local_player_id"),
-        (call_script,"script_equip_player_agent",":agent_id",":w1",":w2",":w3",":w4",":head",":body",":leg",":hand",":horse"),
     (try_end),
 #OPEN WORLD END ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       ]),
@@ -8648,45 +8804,25 @@ scripts = [
           (else_try),(eq, ":scene_prop_id", "spr_travel_passage_west"),(assign,":direction",ow_multiplayer_map_travel_dir_west),
           (try_end),
 
-            #store player
-            (multiplayer_get_my_player,":player_id"),
-            (player_get_agent_id,":agent_id",":player_id"),
-            (agent_get_troop_id,":troop_id",":agent_id"),
-            (player_get_team_no,":player_team_id", ":player_id"),
-            (str_store_player_username, s0, ":player_id"),
-            (call_script,"script_db_update_player",":unique_player_id",":player_team_id",":troop_id"),
-            #store inventory/agent
-            (agent_get_item_slot, ":w1", ":agent_id", 0),
-            (agent_get_item_slot, ":w2", ":agent_id", 1),
-            (agent_get_item_slot, ":w3", ":agent_id", 2),
-            (agent_get_item_slot, ":w4", ":agent_id", 3),
-            (agent_get_item_slot, ":head", ":agent_id", 4),
-            (agent_get_item_slot, ":body", ":agent_id", 5),
-            (agent_get_item_slot, ":leg", ":agent_id", 6),
-            (agent_get_item_slot, ":hand", ":agent_id", 7),
-            (agent_get_horse, ":horse",":agent_id"),
-            (try_begin),
-                (neq,agent_get_item_id,-1),
-                (agent_get_item_id, ":horse", ":horse"),
-            (try_end),
-            (str_store_player_username, s0, ":player_id"),
-            (call_script,"script_db_update_inventory",":unique_player_id",":w1",":w2",":w3",":w4",":head",":body",":leg",":hand", ":horse"),
 
+            #store agent
+            (multiplayer_get_my_player,":player_id"),
+            (str_store_player_username, s0, ":player_id"),
+            (call_script,"script_db_update_agent",":unique_player_id",":player_id"),
+            #store inventory
+            (str_store_player_username, s0, ":player_id"),
+            (call_script,"script_db_update_inventory",":unique_player_id",":player_id"),
             #store location
             (str_store_player_username, s0, ":player_id"),
             (store_current_scene,":cur_scene_id"),
-            (call_script,"script_db_update_current_location",":unique_player_id",":cur_scene_id"),
-
+            (call_script,"script_db_change_current_map",":unique_player_id",":cur_scene_id"),
             #store travel data
             (str_store_player_username, s0, ":player_id"),
-            (call_script,"script_db_update_travel",":unique_player_id", ":agent_id",":direction"),
-
-
-          #travel server
-          (display_message,"@travel called"),
-          (call_script,"script_travel_to",":direction",":agent_id"),#exec script without agent id (no agent will be deleted)
-
-
+            (call_script,"script_db_change_travel",":unique_player_id", ":player_id",":direction"),
+            #reserve slot
+            (str_store_player_username, s0, ":player_id"),
+            (call_script,"script_db_reserve_slot",":unique_player_id",":player_id",ow_db_callback_reserve_slot,":direction"),
+            #callback cares for the rest
 
         (else_try),
               (eq, ":event_type", ow_multiplayer_event_agent_equip_item),
@@ -8698,18 +8834,15 @@ scripts = [
               (try_end),
         (else_try),
           (eq, ":event_type", ow_multiplayer_event_master_player_joined_prsnt),#i am a known/unknown player and joined the master server, let me choose my spawn point.
-          (store_script_param, ":player_uid", 3),
+          (store_script_param, ":player_uid", 3), #what is my unique id?
+          (store_script_param, ":worldinstance", 4), #in which open world am i ?
           ##GLOBAL VAR UNIQUE PLAYER ID SET HERE. ONCE.
           (assign,"$uid",":player_uid"),
-          #PRESENTATION SHIT TODO
-          ##DUMMY
-
-          ##now after everything has been decided let me leave the server and join a new one DUMMY DUMMY belongs to the presentations in reality!
-
+          (assign,"$worldinstance",":worldinstance"),
           (multiplayer_get_my_player, ":player_id"),
-
           (str_store_player_username,s0,":player_id"),
-          (call_script,"script_db_insert_player_if_not_exists","$uid",":player_id"),#create player in db
+          (call_script,"script_db_insert_player_if_not_exists","$uid",":player_id",ow_db_callback_set_lobby_presentations,":worldinstance"),#create player in db ,
+          !
 
 
 
