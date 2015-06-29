@@ -36,7 +36,7 @@ check_travel_portal_use_trigger = (ti_on_scene_prop_use, [
         (eq, ":player_id",":player_no"),
         #send unique player id
         (player_get_unique_id,":unique_id",":player_id"),
-        (multiplayer_send_2_int_to_player, ":player_id", ow_multiplayer_event_travel, ":instance_id", ":unique_id"),
+        (multiplayer_send_3_int_to_player, ":player_id", ow_multiplayer_event_travel, ":instance_id", ":unique_id",0),#0 means: first argument is an instance id, not another travelflag
     (try_end),
 ])
 

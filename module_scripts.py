@@ -81,13 +81,13 @@ scripts = [
         (assign,reg2,":callback_id"),
         (assign,reg3,ow_db_event_load_player),
         (str_store_string,s1,"str_ow_webserver_url"),
-        (display_message,"@db_load_player_data executed with uid {reg0} and local id {reg1}"),
+        #(display_message,"@db_load_player_data executed with uid {reg0} and local id {reg1}"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}"),#send http request
-        (display_message,"@sent message: {s0}?uniqueid={reg0}&localid={reg1}&event=7&username={s0}&callbackid={reg2}" ),
+        #(display_message,"@sent message: {s0}?uniqueid={reg0}&localid={reg1}&event=7&username={s0}&callbackid={reg2}" ),
     ]),
 
 
-    #script_db_insert_player_if_not_exists
+    #script_db_insert_player_if_not_exist
     # INPUT: unique_player_id,username in s0, local_id, callback_id,worldinstanceid
     # creates a new player in the database if not already existent and echoes which case occurred
     ("db_insert_player_if_not_exist",[
@@ -193,13 +193,13 @@ scripts = [
             (try_end),
             (assign,reg10,ow_db_event_update_inventory),
             #do a post request saving the inventory
-            (display_message,"@db_update_inventory executed with uid {reg0} and username {s0}"),
+            #(display_message,"@db_update_inventory executed with uid {reg0} and username {s0}"),
             (str_store_string,s10,"str_ow_webserver_url"),
             (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}"),#send http request
         (try_end),
     ]),
 
-    #db_change_inventory
+    #script_db_change_inventory
     # INPUT:  unique_player_id, player_username in s0,reg0-8: equipment + horse
     # changes invevntory of given player to given values
     #player_get_unique_id
@@ -219,7 +219,7 @@ scripts = [
         (store_script_param, reg9, 10),
         (assign,reg10,ow_db_event_update_inventory),
         #do a post request saving the inventory
-        (display_message,"@db_update_inventory executed with uid {reg0} and username {s0}"),
+        #(display_message,"@db_update_inventory executed with uid {reg0} and username {s0}"),
         (str_store_string,s10,"str_ow_webserver_url"),
         (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}"),#send http request
     ]),
@@ -239,7 +239,7 @@ scripts = [
         (assign,reg1,":local_id"),
         (assign,reg2,":callback_id"),
         (assign,reg3,ow_db_event_load_inventory),
-        (display_message,"@ow_db_event_load_inventory executed "),
+        #(display_message,"@ow_db_event_load_inventory executed "),
         (str_store_string,s1,"str_ow_webserver_url"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}"),#send http request
     ]),
@@ -247,7 +247,7 @@ scripts = [
     ##INVENTORY END
 
     #script_db_reserve_slot
-    #INPUT unique_id, username in s0, local_id,callback_id,location:directions 0-3, others possible in further versions
+    #INPUT unique_id, username in s0, local_id,callback_id,location:directions/maincamp flag
     #tries to reserve a slot at target server, given the current evaluated map name and the given direction
     ("db_reserve_slot",[
 
@@ -263,6 +263,7 @@ scripts = [
         (assign,reg4,":location"),
         (str_store_string,s1,"str_ow_webserver_url"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}&location={reg4}"),#send http request
+        #(display_message,"@try to reserve slot"),
     ]),
 
     #script_db_reverse_slot
@@ -275,20 +276,26 @@ scripts = [
         (assign,reg3,ow_db_event_reverse_slot),
         (str_store_string,s1,"str_ow_webserver_url"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&event={reg3}&username={s0}"),#send http request
-    ])
+    ]),
 
     ##CALLBACKS
-    #script_callback_slot_reserved
-    #INPUT localid,direction/location,reserved
+    #script_db_callback_reserve_slot
+    #INPUT localid,direction/location,reserved,hostip in s0, iplength,port,password in s1,passwordlength
     # if reserving was successful, let the player travel, if not, not.
     ("db_callback_reserve_slot",[
         (store_script_param_1, ":local_id"),
         (store_script_param_2, ":dir"),
         (store_script_param, ":reserved", 3),
+        #hostip in s0
+        (store_script_param, ":iplength", 4),
+        (store_script_param, ":port", 5),
+        #password in s1
+        (store_script_param, ":passwordlength", 6),
         (try_begin),
             (eq,":reserved",1),
+            #(display_message,"@slot reserved!"),
             (player_get_agent_id,":agent_id",":local_id"),
-            (call_script,"script_travel_to",":dir",":agent_id"),
+            (call_script,"script_travel_to",":agent_id",":iplength",":port",":passwordlength"),
         (else_try),
             ##TODO ERROR DIALOG
             (display_message,"@ERROR:SERVER FULL"),
@@ -381,10 +388,12 @@ scripts = [
     # starts entry presentations for the player
     #INPUT
     ("db_callback_set_lobby_presentations",[
-        (store_script_param,":known",0),
+        (store_script_param,":uid",1),
+        (store_script_param,":localid",2),
+        (store_script_param,":known",3),
         (try_begin),#not known
             (eq,":known",0),
-            (start_presentation, "prsnt_ow_multiplayer_team_select"),
+            (start_presentation, "prsnt_ow_multiplayer_lobby_team_select"),
         (else_try),#known
             (display_message,"@welcome, known player!"),
         (try_end),
@@ -407,6 +416,7 @@ scripts = [
 
     ]),
 
+
     #script_db_change_travel
     #INPUT unique_player_id,  player_username in s0,local_id,int travelflag
     #saves given agent's current position and given int travelflag into the database, server sided
@@ -424,12 +434,12 @@ scripts = [
         (position_get_x,reg3,pos0),
         (position_get_y,reg4,pos0),
         (position_get_z,reg5,pos0),
-
+        (assign,reg6,ow_db_event_update_travel),
         (str_store_string,s10,"str_ow_webserver_url"),
-        (send_message_to_url,"@{s10}?uniqueid={reg0}&event=4&username={s0}&direction={reg2}&posx={reg3}&posy={reg4}&posz={reg5}"),#send http request
+        (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg6}&username={s0}&direction={reg2}&posx={reg3}&posy={reg4}&posz={reg5}"),#send http request
 
         #do a post request saving position and direction
-        (display_message,"@script_db_save_travel executed"),
+        #(display_message,"@script_db_save_travel executed"),
     ]),
 
     #script_db_load_travel
@@ -445,40 +455,52 @@ scripts = [
     ]),
 
     #script_travel_to
-    #INPUT int direction, agent_id
+    #INPUT agent_id,serverip in s0,iplength,port,password in s1, passwordlength
     #CLIENT SIDED,leaves the server and joins the one which runs on given map
     ("travel_to",[
-        (store_script_param_1, ":direction"),
-        (store_script_param_2, ":agent_id"),
+        (store_script_param_1, ":agent_id"),
+        #serverip in s0
+        (store_script_param_2, ":iplength"),
+        (store_script_param, ":port",3),
+        #password in s1
+        (store_script_param, ":passwordlength",4),
         #do the directives for the client.exe
-        (display_message,"@script_travel_to executed"),
         (try_begin),#if agent id is valid
             (ge,":agent_id",0),#if valid agent
             (agent_fade_out, ":agent_id"),
         (try_end),
         #directives
+        ##TODO CHANGE THE APP TO GET SERVER DATA TO CONNECt DIreCtLY tO . find out reg0-... , s0-... and parse ip adress directly.
+        (assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
 
-        (store_current_scene,reg0),
-        (call_script,"script_game_get_scene_name",reg0),
-        (str_store_string,s4,s0),#store current scene NAME as string (-> all scene names in this mod MUST have same length
+        (str_store_string,s2, "@will travel to the"),
+        #(display_message,"@leaving server!"),
 
-        (str_store_string, s0, "@Default"),
-        (try_begin),
-            (eq, ":direction", 0),
-            (str_store_string, s0, "@North"),
-        (else_try),
-            (eq, ":direction", 1),
-            (str_store_string, s0, "@East"),
-        (else_try),
-            (eq, ":direction", 2),
-            (str_store_string, s0, "@South"),
-        (else_try),
-            (eq, ":direction", 3),
-            (str_store_string, s0, "@West"),
-        (try_end),
+        #(store_current_scene,reg0),
+        #(call_script,"script_game_get_scene_name",reg0),
+        #(str_store_string,s4,s0),#store current scene NAME as string (-> all scene names in this mod MUST have same length#
 
-        (str_store_string,s1, "@will travel to the {s0}"),
-        (str_store_string,s2, "@character menu reached"),
+        #(str_store_string, s0, "@Default"),
+        #(try_begin),
+        #    (eq, ":direction", ow_multiplayer_map_travel_dir_north),
+        #    (str_store_string, s0, "@North"),
+        #(else_try),
+        #    (eq, ":direction", ow_multiplayer_map_travel_dir_east),
+        #    (str_store_string, s0, "@East"),
+        #(else_try),
+        #    (eq, ":direction", ow_multiplayer_map_travel_dir_south),
+        #    (str_store_string, s0, "@South"),
+        #(else_try),
+        #    (eq, ":direction", ow_multiplayer_map_travel_dir_west),
+        #    (str_store_string, s0, "@West"),
+        #(try_end),
+
+        #(str_store_string,s1, "@will travel to the {s0}"),
+
+        (display_message,"@{s0},{reg0},{reg1},{s1},{reg2}"),
+        (str_store_string,s3, "@character menu reached"),
         (finish_mission, 0),
     ]),
 
@@ -576,16 +598,16 @@ scripts = [
             (agent_get_horse,":horse_id",":agent_id"),
             (try_begin),#if he has a default horse equipped
                 (neq,":horse_id",-1),
-                (display_message,"@agent has a default horse!"),
+                #(display_message,"@agent has a default horse!"),
             (try_end),
             (agent_get_position, pos0, ":agent_id"),
             (set_spawn_position,pos0),
             #(spawn_horse, ":horse", 0),#position is still the same (doesnÄt work??
-            (display_message,"@don't know how to mount agent on horse..."),
+            #(display_message,"@don't know how to mount agent on horse..."),
 
         (try_end),
 
-        (display_message,"@agent equipped"),
+        #(display_message,"@agent equipped"),
 
         #return value is agent id
         (assign,reg0,":agent_id"),
@@ -5436,10 +5458,16 @@ scripts = [
     (else_try),
         (eq,":fired_event",ow_db_event_insert_player),#that was the insert new player event!
         (try_begin),
-            (eq,":callback_id",ow_db_callback_set_lobby_presentations)#we are in the lobby and have to show some presentations
-            (call_script,"script_db_callback_set_lobby_presentations",reg3,-1),#reg0:event, reg1:callback,reg2:uid,reg3:localid and finally reg4 = newplayer/knownplayer
+            (eq,":callback_id",ow_db_callback_set_lobby_presentations),#we are in the lobby and have to show some presentations
+            (call_script,"script_db_callback_set_lobby_presentations",reg2,reg3,reg4),#reg0:event, reg1:callback,reg2:uid,reg3:localid and finally reg4 = newplayer/knownplayer
         (try_end),
-
+    (else_try),
+        (eq,":fired_event",ow_db_event_reserve_slot),# tried to reserve a slot
+        (try_begin),
+            (eq,":callback_id",ow_db_callback_reserve_slot),#callback does the travel or not
+            #hostip in s0, password in s1
+            (call_script,"script_db_callback_reserve_slot",reg3,reg4,reg5,reg6,reg7,reg8),#reg0:event, reg1:callback,reg2:uid,reg3:localid, reg4=location, reg5=success,s0=hostip reg6=iplength reg7=port s1=password reg8=pwlength
+        (try_end),
 
     (try_end),
 #OPEN WORLD END ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -7914,21 +7942,29 @@ scripts = [
           (troop_get_slot, ":current_owner", "trp_multiplayer_data", ":cur_flag_slot"),
           (player_get_team_no,":player_team",":player_no"),
           (val_add,":player_team",1),
-          (try_begin),
-            (eq,":player_team",":current_owner"),
+#OPEN WORLD BEGIN
+            (try_begin),#spawn selection: at main camp
+                (ge,":cur_flag_slot",multi_data_flag_owner_end),
+                (player_set_slot,":player_no",slot_player_selected_flag,":value"),
+                (multiplayer_send_message_to_player, ":player_no", multiplayer_event_return_confirmation),
+            (else_try),#normal flag selection case
+#OPEN WORLD END
+              (try_begin),
+                (eq,":player_team",":current_owner"),
 
-            # (assign,reg5,":value"),
-            # (str_store_string,s4,"@Flag selected confirm: {reg5}"),
-            # (call_script, "script_multiplayer_broadcast_message"),
+                # (assign,reg5,":value"),
+                # (str_store_string,s4,"@Flag selected confirm: {reg5}"),
+                # (call_script, "script_multiplayer_broadcast_message"),
 
-            #(troop_set_slot,"trp_conquest_spawn_dummy",":player_no",":value"),
+                #(troop_set_slot,"trp_conquest_spawn_dummy",":player_no",":value"),
 
-            (player_set_slot,":player_no",slot_player_selected_flag,":value"),
-            (multiplayer_send_message_to_player, ":player_no", multiplayer_event_return_confirmation),
-          (else_try),
-            (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_show_multiplayer_message, multiplayer_message_type_error, "str_invalid_flag_selection"),
-            (multiplayer_send_message_to_player, ":player_no", multiplayer_event_return_rejection),
-          (try_end),
+                (player_set_slot,":player_no",slot_player_selected_flag,":value"),
+                (multiplayer_send_message_to_player, ":player_no", multiplayer_event_return_confirmation),
+              (else_try),
+                (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_show_multiplayer_message, multiplayer_message_type_error, "str_invalid_flag_selection"),
+                (multiplayer_send_message_to_player, ":player_no", multiplayer_event_return_rejection),
+              (try_end),
+            (try_end),
         (try_end),
       (else_try),
         (eq, ":event_type", multiplayer_event_player_build_prop),
@@ -8792,26 +8828,54 @@ scripts = [
 # OPEN WORLD -----------------------------------------------------------------------------------------------------------
         (else_try),
           (eq, ":event_type", ow_multiplayer_event_travel),
-          (store_script_param, ":instance_id", 3), # scene prop instance
+          (store_script_param, ":travelflag", 3), # scene prop instance/Travel flag
           (store_script_param, ":unique_player_id", 4), # uid
+          (store_script_param, ":instanceortravelflag", 5), # specifies, if travelflag has to be understood as prop instance id or as travelflag
           #we are on client side
           #evaluate direction with given instance id (which portal was activated?)
           (assign,":direction",-1),
-          (prop_instance_get_scene_prop_kind, ":scene_prop_id", ":instance_id"),
-          (try_begin),(eq, ":scene_prop_id", "spr_travel_passage_north"),(assign,":direction",ow_multiplayer_map_travel_dir_north),
-          (else_try),(eq, ":scene_prop_id", "spr_travel_passage_east"),(assign,":direction",ow_multiplayer_map_travel_dir_east),
-          (else_try),(eq, ":scene_prop_id", "spr_travel_passage_south"),(assign,":direction",ow_multiplayer_map_travel_dir_south),
-          (else_try),(eq, ":scene_prop_id", "spr_travel_passage_west"),(assign,":direction",ow_multiplayer_map_travel_dir_west),
+          (try_begin),
+                (eq,":instanceortravelflag",0),
+                (prop_instance_get_scene_prop_kind, ":scene_prop_id", ":travelflag"),#if it was a sceneprop travel
+                (try_begin),(eq, ":scene_prop_id", "spr_travel_passage_north"),(assign,":direction",ow_multiplayer_map_travel_dir_north),
+                (else_try),(eq, ":scene_prop_id", "spr_travel_passage_east"),(assign,":direction",ow_multiplayer_map_travel_dir_east),
+                (else_try),(eq, ":scene_prop_id", "spr_travel_passage_south"),(assign,":direction",ow_multiplayer_map_travel_dir_south),
+                (else_try),(eq, ":scene_prop_id", "spr_travel_passage_west"),(assign,":direction",ow_multiplayer_map_travel_dir_west),
+                (try_end),
+          (else_try),#or if it was another travel instruction
+                (assign,":direction",":travelflag"),
           (try_end),
-
-
-            #store agent
+          #now check if agent is existent and store equipment
             (multiplayer_get_my_player,":player_id"),
-            (str_store_player_username, s0, ":player_id"),
-            (call_script,"script_db_update_agent",":unique_player_id",":player_id"),
-            #store inventory
-            (str_store_player_username, s0, ":player_id"),
-            (call_script,"script_db_update_inventory",":unique_player_id",":player_id"),
+            (player_get_agent_id,":agent_id", ":player_id"),
+            (try_begin),
+                (ge,":agent_id",0),#agent exists
+                #store agent
+                (str_store_player_username, s0, ":player_id"),
+                (call_script,"script_db_update_agent",":unique_player_id",":player_id"),
+                #store inventory
+                (str_store_player_username, s0, ":player_id"),
+                (call_script,"script_db_update_inventory",":unique_player_id",":player_id"),
+            (else_try),#agent doesn't exist, take player equipmentslots
+                (player_get_team_no, ":team", ":player_id"),
+                (player_get_troop_id, ":troop", ":player_id"),
+                (str_store_player_username, s0, ":player_id"),
+                (call_script,"script_db_change_agent",":unique_player_id",":player_id",":team",":troop",0),
+                (player_get_slot, ":w1", ":player_id", ek_item_0),
+                (player_get_slot, ":w2", ":player_id", ek_item_1),
+                (player_get_slot, ":w3", ":player_id", ek_item_2),
+                (player_get_slot, ":w4", ":player_id", ek_item_3),
+                (player_get_slot, ":head", ":player_id", ek_head),
+                (player_get_slot, ":body", ":player_id", ek_body),
+                (player_get_slot, ":leg", ":player_id", ek_foot),
+                (player_get_slot, ":hand", ":player_id", ek_gloves),
+                (player_get_slot, ":horse", ":player_id", ek_horse),
+                (str_store_player_username, s0, ":player_id"),
+                (call_script,"script_db_change_inventory",":unique_player_id",":w1",":w2",":w3",":w4",":head",":body",":leg",":hand",":horse"),
+            (try_end),
+
+
+
             #store location
             (str_store_player_username, s0, ":player_id"),
             (store_current_scene,":cur_scene_id"),
@@ -8841,8 +8905,8 @@ scripts = [
           (assign,"$worldinstance",":worldinstance"),
           (multiplayer_get_my_player, ":player_id"),
           (str_store_player_username,s0,":player_id"),
-          (call_script,"script_db_insert_player_if_not_exists","$uid",":player_id",ow_db_callback_set_lobby_presentations,":worldinstance"),#create player in db ,
-          !
+          (call_script,"script_db_insert_player_if_not_exist","$uid",":player_id",ow_db_callback_set_lobby_presentations,":worldinstance"),#create player in db ,
+
 
 
 

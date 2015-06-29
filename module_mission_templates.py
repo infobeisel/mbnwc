@@ -3472,7 +3472,8 @@ mission_templates = [
 #if player is known to the master sercer already, he can choose where to spawn (where he left last time or in the main camp, or even at friendly players ?)
 ("ow_master_server",mtf_team_fight,-1,"the master server handling initial join requests",[],[
     (ti_once,0,0,[],[
-        (assign,"$uid",-1)#init unique id with -1 as client.
+        (assign,"$uid",-1),#init unique id with -1 as client.
+        #(assign,"$showflag",0),
     ]),
     (ti_server_player_joined, 0, 0, [],
     [
@@ -3489,6 +3490,60 @@ mission_templates = [
 
     ]),
 
+    # 1) Check interval: How frequently this trigger will be checked
+# 2) Delay interval: Time to wait before applying the consequences of the trigger
+#    After its conditions have been evaluated as true.
+# 3) Re-arm interval. How much time must pass after applying the consequences of the trigger for the trigger to become active again.
+#    You can put the constant ti_once here to make sure that the trigger never becomes active again after it fires once.
+# 4) Conditions block (list). This must be a valid operation block. See header_operations.py for reference.
+#    Every time the trigger is checked, the conditions block will be executed.
+#    If the conditions block returns true, the consequences block will be executed.
+#    If the conditions block is empty, it is assumed that it always evaluates to true.
+# 5) Consequences block (list). This must be a valid operation block. See header_operations.py for reference.
+    (4,0,0,[(multiplayer_is_server)],[
+        (try_for_range, ":cur_player", "$g_player_loops_begin", multiplayer_player_loops_end),
+            (player_is_active,":cur_player"),
+            (player_get_slot,reg0,":cur_player",slot_player_selected_flag),
+            (assign,reg1,multi_data_flag_owner_end),
+            #(display_message,"@chosen flag {reg0}, should be {reg1}"),
+            (try_begin),
+                (eq,reg0,multi_data_flag_owner_end),#wants to spawn at maincamp
+                #(display_message,"@ok spawn at maincamp"),
+                (assign,":travelflag", ow_multiplayer_map_travel_maincamp),
+                (player_get_unique_id, ":unique_player_id", ":cur_player"),
+                (multiplayer_send_3_int_to_player, ":cur_player", ow_multiplayer_event_travel, ":travelflag", ":unique_player_id",1),
+            (try_end),
+        (try_end),
+
+
+        #(try_begin),
+        #    (eq,"$showflag",0),
+        #    (str_store_string, s0, "@s0"),
+        #    (str_store_string, s1, "@s1"),
+        #    (str_store_string, s2, "@s2"),
+        #    (str_store_string, s3, "@s3"),
+        #    (str_store_string, s4, "@s4"),
+        #    (assign,reg0,78777),
+        #    (assign,reg1,78778),
+        #    (assign,reg2,78779),
+        #    (assign,reg3,78780),
+        #    (assign,"$showflag",1),
+        #(else_try),
+        #    (eq,"$showflag",1),
+        #    (str_store_string, s0, "@sa"),
+        #    (str_store_string, s1, "@sb"),
+        #    (str_store_string, s2, "@sc"),
+        #    (str_store_string, s3, "@sd"),
+        #    (str_store_string, s4, "@se"),
+        #    (assign,reg0,52777),
+        #    (assign,reg1,52778),
+        #    (assign,reg2,52779),
+        #    (assign,reg3,52780),
+        #    (assign,"$showflag",0),
+        #(try_end),
+
+
+    ]),
 
 ]),
 
@@ -3581,7 +3636,6 @@ mission_templates = [
 
 
     ],[
-
      (ti_on_player_exit, 0, 0, [],
 		[
         (store_trigger_param_1, ":player_no"),

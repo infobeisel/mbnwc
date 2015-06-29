@@ -46,8 +46,7 @@ ow_multiplayer_map_travel_dir_north = 0 #the player travels in this direction
 ow_multiplayer_map_travel_dir_east = 1
 ow_multiplayer_map_travel_dir_south = 2
 ow_multiplayer_map_travel_dir_west = 3
-ow_multiplayer_map_travel_for_prison = 4 # the player travels to go to the prison
-ow_multiplayer_map_travel_for_spawn_selection = 5 # the player travels and wants to get the spawn selection dialog
+ow_multiplayer_map_travel_maincamp = 4 # the player travels to go to the main camp
 
 ow_menu_welcome_text_height = 100
 ow_menu_item_height = 40
