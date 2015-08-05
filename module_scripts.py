@@ -388,9 +388,10 @@ scripts = [
             (player_add_spawn_item, ":local_player_id", ek_head, ":head"),
             (player_add_spawn_item, ":local_player_id", ek_body, ":body"),
             (player_add_spawn_item, ":local_player_id", ek_foot, ":leg"),
+            (player_add_spawn_item, ":local_player_id", ek_gloves, ":hand"),
+
             (try_begin),
                 (eq,":spawn_immediately",1),
-                (player_add_spawn_item, ":local_player_id", ek_gloves, ":hand"),
                 (player_spawn_new_agent,  ":local_player_id", ":spawn_entry_point"),
                 (player_get_agent_id,":agent_id",":local_player_id"),
                 (agent_set_hit_points, ":agent_id", ":hitpoints"),
