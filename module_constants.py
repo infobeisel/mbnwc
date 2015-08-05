@@ -47,6 +47,7 @@ ow_multiplayer_map_travel_dir_east = 1
 ow_multiplayer_map_travel_dir_south = 2
 ow_multiplayer_map_travel_dir_west = 3
 ow_multiplayer_map_travel_maincamp = 4 # the player travels to go to the main camp
+ow_multiplayer_map_travel_scene_offset = 10 #the player travels to a specific scene, whose number got incremented by this offset (so FROM ow_multiplayer_scenes_begin + ow_multiplayer_map_travel_scene_offset TO ow_multiplayer_scene_names_end + ow_multiplayer_map_travel_scene_offset)
 
 ow_menu_welcome_text_height = 100
 ow_menu_item_height = 40

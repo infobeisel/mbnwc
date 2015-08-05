@@ -26,7 +26,6 @@ scripts = [
 #OPEN WORLD-------------------------------------------------------------------------------------------------------------
 
 
-#TODO differ between db_act_ and db_react_ functions (first type sends a request, second type reacts on the respond and gets called in the url_receive method)
 
     #script_get_nearest_entry_point_to_pos
     #INPUT: posx,posy,posz
@@ -68,7 +67,7 @@ scripts = [
     ]),
 
     ##THE PLAYER
-    #script_db_load_player
+    #script_db_load_player_data
     #INPUT: unique player_id, username in s0, local_id,callback_id
     #loads all player-specific data out of the database, including his traveldata, inventory,agentdata,last map where he spawned etc.
     ("db_load_player_data",[
@@ -324,10 +323,11 @@ scripts = [
         (store_script_param,":leg",16),
         (store_script_param,":hand",17),
         (store_script_param,":horse",18),
+        (assign,":spawn_immediately",0),
         ##POSITION
         #if he came from the south, negate the y coordinate, if he came from east, the x...
         (get_scene_boundaries,pos0,pos1),#1st is min, 2nd is max
-        (try_begin),
+        (try_begin),#player came from N,E,S,W dirs (was on a neighbour map earlier and went to the edge of the map)
             (store_add, ":temp", ow_multiplayer_map_travel_dir_west,1),
             (is_between, ":direction", ow_multiplayer_map_travel_dir_north, ":temp"),#the player traveled here coming from a neighbour map
             (try_begin),
@@ -346,7 +346,20 @@ scripts = [
                 (eq,":direction",ow_multiplayer_map_travel_dir_west),#came from east
                 (position_get_x, ":posx", pos1),
             (try_end),
-            #evaluate spawn position
+            (assign,":spawn_immediately",1),
+
+        (else_try), #main camp
+            (eq,":direction",ow_multiplayer_map_travel_maincamp),#player traveled here to spawn at the maincamp
+            #posx,posy,posz are the coordinates of the main camp
+            (assign,":spawn_immediately",1),
+        (else_try),  #player traveled directly here. positions means nothing -> let him choose a spawn point
+            (start_presentation,"prsnt_conquest_flag_select"),
+            (assign,":spawn_immediately",0),#don't spawn him directly, let him choose.
+        (try_end),
+
+
+
+        #evaluate spawn position
             (call_script,"script_get_nearest_entry_point_to_pos",":posx",":posy",":posz"),
             (assign,":spawn_entry_point",reg0), #ret from function above
             ##SPAWN
@@ -375,13 +388,13 @@ scripts = [
             (player_add_spawn_item, ":local_player_id", ek_head, ":head"),
             (player_add_spawn_item, ":local_player_id", ek_body, ":body"),
             (player_add_spawn_item, ":local_player_id", ek_foot, ":leg"),
-            (player_add_spawn_item, ":local_player_id", ek_gloves, ":hand"),
-            (player_spawn_new_agent,  ":local_player_id", ":spawn_entry_point"),
-            (player_get_agent_id,":agent_id",":local_player_id"),
-            (agent_set_hit_points, ":agent_id", ":hitpoints"),
-
-        #else prison/rejoin etc.
-        (try_end),
+            (try_begin),
+                (eq,":spawn_immediately",1),
+                (player_add_spawn_item, ":local_player_id", ek_gloves, ":hand"),
+                (player_spawn_new_agent,  ":local_player_id", ":spawn_entry_point"),
+                (player_get_agent_id,":agent_id",":local_player_id"),
+                (agent_set_hit_points, ":agent_id", ":hitpoints"),
+            (try_end),
     ]),
 
     #script_db_callback_set_lobby_presentations
@@ -391,10 +404,11 @@ scripts = [
         (store_script_param,":uid",1),
         (store_script_param,":localid",2),
         (store_script_param,":known",3),
-        (try_begin),#not known
+        (try_begin),#player is not known
             (eq,":known",0),
             (start_presentation, "prsnt_ow_multiplayer_lobby_team_select"),
         (else_try),#known
+
             (display_message,"@welcome, known player!"),
         (try_end),
 
@@ -460,6 +474,7 @@ scripts = [
     ("travel_to",[
         (store_script_param_1, ":agent_id"),
         #serverip in s0
+        (str_store_string_reg,s20,s0),
         (store_script_param_2, ":iplength"),
         (store_script_param, ":port",3),
         #password in s1
@@ -5445,7 +5460,7 @@ scripts = [
         (eq, ":num_strings", 1),
         (display_message, s0),#error will display in console window
     (try_end),
-    (display_message,"@url response regs: {s0},{reg0},{reg1},{reg2},{reg3},{reg4},{reg5},{reg6},{reg7},{reg8},{reg9},{reg10},{reg11}"),
+    #(display_message,"@url response regs: {s0},{reg0},{reg1},{reg2},{reg3},{reg4},{reg5},{reg6},{reg7},{reg8},{reg9},{reg10},{reg11}"),
     #(display_message,"@url response str regs: {s0},{s1},{s2},{s3},{s4},{s5}..."),
     (assign,":fired_event",reg0),
     (assign,":callback_id",reg1),

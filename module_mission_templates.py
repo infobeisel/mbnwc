@@ -3500,7 +3500,7 @@ mission_templates = [
 #    If the conditions block returns true, the consequences block will be executed.
 #    If the conditions block is empty, it is assumed that it always evaluates to true.
 # 5) Consequences block (list). This must be a valid operation block. See header_operations.py for reference.
-    (4,0,0,[(multiplayer_is_server)],[
+    (4,1,1,[(multiplayer_is_server)],[
         (try_for_range, ":cur_player", "$g_player_loops_begin", multiplayer_player_loops_end),
             (player_is_active,":cur_player"),
             (player_get_slot,reg0,":cur_player",slot_player_selected_flag),
@@ -3638,24 +3638,31 @@ mission_templates = [
     ],[
      (ti_on_player_exit, 0, 0, [],
 		[
+		#ow
         (store_trigger_param_1, ":player_no"),
         (player_get_unique_id, ":unique_player_id", ":player_no"),
         (str_store_player_username, s0, ":player_no"),
         (call_script,"script_db_reverse_slot",":unique_player_id",s0),
+
+        #conquest
 		]),
     (ti_server_player_joined, 0, 0, [],
     [
+
         (store_trigger_param_1, ":new_player_player_no"),
+    #ow
     #we have to be on server side now
         (multiplayer_is_server),
         (player_get_unique_id, ":unique_player_id", ":new_player_player_no"),
         (str_store_player_username, s0, ":new_player_player_no"),
         (call_script,"script_db_load_player_data",":unique_player_id",":new_player_player_no",ow_db_callback_handle_join),#will do the rest
+    #conquest
     ]),
 
     (ti_on_agent_spawn, 0, 0, [],
     [
         (store_trigger_param_1, ":agent_no"),
+    #ow
     #directive to the local client and his exe: server joined
         (try_begin),
             (neg|multiplayer_is_server),
@@ -3664,6 +3671,7 @@ mission_templates = [
             (eq,":player_id",":my_player_id"),#if i am the one who joined recently
             (str_store_string,s1,"@joined server"),
         (try_end),
+    #conquest
     ]),
     (ti_after_mission_start, 0, 0, [],
     [
