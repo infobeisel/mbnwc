@@ -197,17 +197,22 @@ scripts = [
             (try_begin),
                 (neq,reg9,-1),
                 (agent_get_item_id, reg9, reg9),
-            (try_end),
+            (try_end), 
+			(agent_get_ammo_for_slot, reg11, ":agent_id",0),
+			(agent_get_ammo_for_slot, reg12, ":agent_id",1),
+			(agent_get_ammo_for_slot, reg13, ":agent_id",2),
+			(agent_get_ammo_for_slot, reg14, ":agent_id",3),
+			
             (assign,reg10,ow_db_event_update_inventory),
             #do a post request saving the inventory
             #(display_message,"@db_update_inventory executed with uid {reg0} and username {s0}"),
             (str_store_string,s10,"str_ow_webserver_url"),
-            (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}"),#send http request
+            (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}&w1optval={reg11}&w2optval={reg12}&w3optval={reg13}&w4optval={reg14}"),#send http request
         (try_end),
     ]),
 
     #script_db_change_inventory
-    # INPUT:  unique_player_id, player_username in s0,reg0-8: equipment + horse
+    # INPUT:  unique_player_id, player_username in s0,reg0-8: equipment + horse + weaponammo
     # changes invevntory of given player to given values
     #player_get_unique_id
     ("db_change_inventory",[
@@ -225,10 +230,15 @@ scripts = [
         (store_script_param, reg8, 9),
         (store_script_param, reg9, 10),
         (assign,reg10,ow_db_event_update_inventory),
+        (store_script_param, reg11, 11),
+        (store_script_param, reg12,12),
+        (store_script_param, reg13, 13),
+        (store_script_param, reg14, 14),
+		
         #do a post request saving the inventory
         #(display_message,"@db_update_inventory executed with uid {reg0} and username {s0}"),
         (str_store_string,s10,"str_ow_webserver_url"),
-        (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}"),#send http request
+        (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}&w1optval={reg11}&w2optval={reg12}&w3optval={reg13}&w4optval={reg14}"),#send http request
     ]),
 
 
@@ -549,7 +559,7 @@ scripts = [
     ]),
 
     #script_equip_player_agent
-    #INPUT agent_id, 9x int equipment (may be -1): first the 4 weapons then head_armor, body_armor,leg_armor,hand_armor,Horse
+    #INPUT agent_id, 13x int equipment (may be -1): first the 4 weapons then head_armor, body_armor,leg_armor,hand_armor,Horse
     #OUTPUT r0 agent reference
     #replaces his equipment with given one (if an int == -1, leave equipment as is, TODO -2 delete it)
     ("equip_player_agent",[
@@ -563,7 +573,12 @@ scripts = [
         (store_script_param, ":leg",8),
         (store_script_param, ":hand", 9),
         (store_script_param, ":horse",10),
-
+        (store_script_param, ":w1optval", 7),
+        (store_script_param, ":w2optval",8),
+        (store_script_param, ":w3optval", 9),
+        (store_script_param, ":w4optval",10),
+		
+		(assign,":refill_ammo",1), #basically refill ammo
 
         (try_begin),#w1
             (neq,":w1",-1),
@@ -573,6 +588,15 @@ scripts = [
                 (agent_unequip_item,":agent_id",":tmp_itm", 1),
             (try_end),
             (agent_equip_item, ":agent_id", ":w1", 1),
+			(try_begin),
+				(item_get_slot, ":item_class", ":w1", slot_item_multiplayer_item_class),
+				(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
+				(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
+				(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),#a weapon with ammo/an ammopack
+				(neq,":w1optval",-1),#a weapon with ammo/an ammopack, ammo amount is defined (not -1)
+				(agent_set_ammo, ":agent_id", ":w1", ":w1optval"),
+				(assign,":refill_ammo",0),
+			(try_end),
         (try_end),
         (try_begin),#w2
             (neq,":w2",-1),
@@ -582,6 +606,15 @@ scripts = [
                 (agent_unequip_item,":agent_id",":tmp_itm", 2),
             (try_end),
             (agent_equip_item, ":agent_id", ":w2", 2),
+			(try_begin),
+				(item_get_slot, ":item_class", ":w2", slot_item_multiplayer_item_class),
+				(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
+				(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
+				(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),#a weapon with ammo/an ammopack
+				(neq,":w2optval",-1),#a weapon with ammo/an ammopack, ammo amount is defined (not -1)
+				(agent_set_ammo, ":agent_id", ":w2", ":w2optval"),
+				(assign,":refill_ammo",0),
+			(try_end),
         (try_end),
         (try_begin),#w3
             (neq,":w3",-1),
@@ -591,6 +624,15 @@ scripts = [
                 (agent_unequip_item,":agent_id",":tmp_itm", 3),
             (try_end),
             (agent_equip_item, ":agent_id", ":w3", 3),
+			(try_begin),
+				(item_get_slot, ":item_class", ":w3", slot_item_multiplayer_item_class),
+				(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
+				(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
+				(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),#a weapon with ammo/an ammopack
+				(neq,":w3optval",-1),#a weapon with ammo/an ammopack, ammo amount is defined (not -1)
+				(agent_set_ammo, ":agent_id", ":w3", ":w3optval"),
+				(assign,":refill_ammo",0),
+			(try_end),
         (try_end),
         (try_begin),#w4
             (neq,":w4",-1),
@@ -600,6 +642,15 @@ scripts = [
                 (agent_unequip_item,":agent_id",":tmp_itm", 4),
             (try_end),
             (agent_equip_item, ":agent_id", ":w4", 4),
+			(try_begin),
+				(item_get_slot, ":item_class", ":w4", slot_item_multiplayer_item_class),
+				(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
+				(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
+				(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),
+				(neq,":w4optval",-1),#a weapon with ammo/an ammopack, ammo amount is defined (not -1)
+				(agent_set_ammo, ":agent_id", ":w4", ":w4optval"),
+				(assign,":refill_ammo",0),
+			(try_end),
         (try_end),
         (try_begin),#head
             (neq,":head",-1),
@@ -651,8 +702,11 @@ scripts = [
 
         (try_end),
 
-		#refill ammo
-		(agent_refill_ammo, ":agent_id"),
+		#refill ammo?
+		(try_begin),
+			(eq,":refill_ammo",1),
+			(agent_refill_ammo, ":agent_id"),
+		(try_end),
 
 		
         #(display_message,"@agent equipped"),
@@ -5462,7 +5516,7 @@ scripts = [
 		(try_begin),
             (eq,":callback_id",ow_db_callback_equip_agent),#agent of given player (localid) shall be equipped
 			(player_get_agent_id,":agent",reg3),#get the agent to given local id
-            (call_script,"script_equip_player_agent",":agent",reg4,reg5,reg6,reg7,reg8,reg9,reg10,reg11,reg12),#reg0:event, reg1:callback,reg2:uid,reg3:localid, rest is inventory
+            (call_script,"script_equip_player_agent",":agent",reg4,reg5,reg6,reg7,reg8,reg9,reg10,reg11,reg12,reg13,reg14,reg15,reg16),#reg0:event, reg1:callback,reg2:uid,reg3:localid, rest is inventory
 		(try_end),
     (try_end),
 #OPEN WORLD END ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -8832,7 +8886,8 @@ scripts = [
                 (troop_get_inventory_slot, reg7, ":troop", ek_gloves),
                 (troop_get_inventory_slot, reg8, ":troop", ek_horse),
                 (str_store_player_username, s0, ":player_id"),
-                (call_script,"script_db_change_inventory",":unique_player_id",reg0,reg1,reg2,reg3,reg4,reg5,reg6,reg7,reg8),
+				(assign,reg9,-1),#ammo amount (give -1 for complete refill)
+                (call_script,"script_db_change_inventory",":unique_player_id",reg0,reg1,reg2,reg3,reg4,reg5,reg6,reg7,reg8,reg9,reg9,reg9,reg9),
             (try_end),
 
 

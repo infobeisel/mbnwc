@@ -1,4 +1,4 @@
-import string
+﻿import string
 from module_info import *
 from module_map_icons import *
 
