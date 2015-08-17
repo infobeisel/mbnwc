@@ -72,7 +72,7 @@ sounds = [
  ("incoming_bolt_hit_ground",sf_priority_7|sf_vol_10, ["musket_groundhit.wav","musket_groundhit1.wav"]), #MM
  ("incoming_javelin_hit_ground",sf_priority_7|sf_vol_7, []),
  ("incoming_stone_hit_ground",sf_priority_7|sf_vol_7, []),
- ("incoming_axe_hit_ground",sf_priority_7|sf_vol_7, ["axe_ground_01.wav"]),
+ ("incoming_axe_hit_ground",sf_priority_7|sf_vol_7, []),
  ("incoming_knife_hit_ground",sf_priority_7|sf_vol_7, []),
  ("incoming_bullet_hit_ground",sf_priority_7|sf_vol_10, ["musket_groundhit.wav","musket_groundhit1.wav"]),
 
@@ -341,7 +341,7 @@ sounds = [
  ("admin_banhammer",sf_priority_15|sf_vol_15|sf_2d, ["admin_banhammer.ogg"]),
  ("admin_shotgun",sf_priority_15|sf_vol_15|sf_2d, ["admin_shotgun.ogg"]),
  ("admin_rocketlauncher",sf_priority_15|sf_vol_15|sf_2d, ["admin_rocketlauncher.ogg"]),
- ("glass_break",sf_priority_7|sf_vol_10, ["snd_axe_ground_01.ogg"]),
+ ("glass_break",sf_priority_7|sf_vol_10, ["glass.ogg"]),
  ("flag_loop",sf_priority_7|sf_vol_8|sf_looping, ["flagloop.wav"]),
  ("thunder",sf_2d|sf_priority_15|sf_vol_15, ["thunder1.wav","thunder2.wav","thunder3.wav","thunder4.wav"]),
  ("crate_fuse",sf_priority_7|sf_vol_10, ["crate_fuse.wav"]),
@@ -502,24 +502,6 @@ sounds = [
    ,"rus_battlecry11.wav"
    ,"rus_battlecry12.wav"
  ]),
- 
- ("voice_cry_pirate", sf_priority_8|sf_vol_13, [
-    "pirate_1.wav"
-   ,"pirate_2.wav"
-   ,"pirate_3.wav"
-   ,"pirate_4.wav"
-   ,"pirate_5.wav"
-   ,"pirate_6.wav"
-   ,"pirate_7.wav"
-   ,"pirate_8.wav"
-   ,"pirate_9.wav"
-   ,"pirate_10.wav"
-   ,"pirate_11.wav"
-   ,"pirate_12.wav"
-   ,"pirate_13.wav"
-   ,"pirate_14.wav"
- ]), 
- 
  
  # Surrendering
  ("voice_surrender_brit", sf_priority_8|sf_vol_13|sf_stream_from_hd, [

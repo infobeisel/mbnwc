@@ -27,9 +27,9 @@ factions = [
 
   ("player_faction","Player Faction",0, 0.9, [], []),
   ("player_supporters_faction","Player's Supporters",0, 0.9, [("player_faction",1.00),("outlaws",-0.05)], [], 0xFF4433), #changed name so that can tell difference if shows up on map
-  ("britain",  "Great Britain",    0, 0.9, [("outlaws",-0.05),], [], 0xCCBB99),
-  ("france",  "Royaume de France", 0, 0.9, [("outlaws",-0.05)], [], 0xCC99FF),
-   ("prussia",  "Konigreich Preussen", 0, 0.9, [("outlaws",-0.05)], [], 0xCCBB99),
+  ("britain",  "United Kingdom",    0, 0.9, [("outlaws",-0.05),], [], 0xCCBB99),
+  ("france",  "Empire Francais", 0, 0.9, [("outlaws",-0.05)], [], 0xCC99FF),
+  ("prussia",  "Konigreich Preussen", 0, 0.9, [("outlaws",-0.05)], [], 0xCCBB99),
   ("russia",  "Rossiyskaya Imperiya",    0, 0.9, [("outlaws",-0.05)], [], 0x33DDDD),
   ("austria",  "Kaisertum Osterreich",  0, 0.9, [("outlaws",-0.05)], [], 0x33DD33),
   ("kingdoms_end","{!}kingdoms_end", 0, 0,[], []),

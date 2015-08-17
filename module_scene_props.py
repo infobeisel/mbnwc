@@ -16,34 +16,6 @@ import string
 #  5) Triggers: Simple triggers that are associated with the scene prop
 ####################################################################################################################
 
-
-
-  #OPEN WORLD----------------------------------------------------------------------------------------------------------
-
-check_travel_portal_use_trigger = (ti_on_scene_prop_use, [
-    (store_trigger_param_1, ":agent_id"),
-    (store_trigger_param_2, ":instance_id"),
-
-    (assign, reg0, ":agent_id"),
-    (agent_get_player_id,":player_id",":agent_id"),
-    (assign, reg1,  ":player_id"),
-
-    (display_message,"@!travel portal was activated by agent {reg0} by player {reg1}"),
-
-    #send event to client
-    (get_max_players, ":num_players"),
-    (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
-        (eq, ":player_id",":player_no"),
-        #send unique player id
-        (player_get_unique_id,":unique_id",":player_id"),
-        (multiplayer_send_3_int_to_player, ":player_id", ow_multiplayer_event_travel, ":instance_id", ":unique_id",0),#0 means: first argument is an instance id, not another travelflag
-    (try_end),
-])
-
-  #OPEN WORLD END------------------------------------------------------------------------------------------------------
-
-
-
 #MM
 check_mm_on_destroy_window_trigger = (ti_on_scene_prop_destroy,
   [
@@ -51,24 +23,24 @@ check_mm_on_destroy_window_trigger = (ti_on_scene_prop_destroy,
       (this_or_next|multiplayer_is_server),
       (neg|game_in_multiplayer_mode),
 
-      (store_trigger_param_1, ":instance_id"),
+      (store_trigger_param_1, ":instance_id"),      
       (prop_instance_is_valid,":instance_id"),
       (prop_instance_get_scene_prop_kind,":prop_kind",":instance_id"),
       (prop_instance_get_position,pos49,":instance_id"),
-
+      
       (prop_instance_get_scale, pos32, ":instance_id"),
       (set_fixed_point_multiplier, 1000),
       # Resize the prefered positions to scale
       (position_get_scale_x, ":x_scale", pos32),#x scale in meters * fixed point multiplier is returned
       (position_get_scale_y, ":y_scale", pos32),
-      (position_get_scale_z, ":z_scale", pos32),
+      (position_get_scale_z, ":z_scale", pos32),  
       (set_fixed_point_multiplier, 100),
 
       (copy_position,pos56,pos49),
       (position_move_z,pos56,140),
       (particle_system_burst, "psys_bottle_break", pos56, 10),
       (call_script, "script_multiplayer_server_play_sound_at_position", "snd_glass_break"),
-
+      
       (assign,":prop_to_spawn",-1),
       (try_begin),
         (eq,":prop_kind","spr_mm_window1"),
@@ -95,22 +67,22 @@ check_mm_on_destroy_window_trigger = (ti_on_scene_prop_destroy,
         (eq,":prop_kind","spr_mm_window4_poor"),
         (assign,":prop_to_spawn","spr_mm_window4d_poor"),
       (try_end),
-
+      
       (call_script, "script_find_or_create_scene_prop_instance", ":prop_to_spawn", 0, 0),
       (assign,":destroyed_prop",reg0),
-
+      
       (call_script, "script_multiplayer_server_scale_prop_instance", ":destroyed_prop",":x_scale",":y_scale",":z_scale"),
-
+      
       (scene_prop_set_slot, ":destroyed_prop", scene_prop_slot_replacing, ":instance_id"),
-
+      
       (scene_prop_get_slot,":wall_instance",":instance_id", scene_prop_slot_parent_prop),
       (try_begin),
         (prop_instance_is_valid,":wall_instance"),
         (scene_prop_set_slot,":destroyed_prop",scene_prop_slot_parent_prop,":wall_instance"),
-
+        
         (scene_prop_set_slot,":wall_instance",scene_prop_slot_child_prop1,":destroyed_prop"),
       (try_end),
-
+      
       (call_script, "script_clean_up_prop_instance", ":instance_id"),
     (try_end),
   ])
@@ -120,15 +92,15 @@ check_mm_use_cannon_prop_start_trigger = (ti_on_scene_prop_start_use,
   [
     (store_trigger_param_1, ":agent_id"),
     (store_trigger_param_2, ":instance_id"),
-
+    
     (call_script, "script_multiplayer_server_check_if_can_use_button", ":agent_id", ":instance_id"),
     (eq, reg0, 1),
-
+    
     (prop_instance_get_scene_prop_kind, ":scene_prop_id", ":instance_id"),
-
+     
     (assign, ":anim_id", -1),
     (try_begin),
-      (is_between, ":scene_prop_id", mm_unlimber_button_types_begin, mm_unlimber_button_types_end),
+      (is_between, ":scene_prop_id", mm_unlimber_button_types_begin, mm_unlimber_button_types_end), 
       #(assign, ":anim_id", "anim_"),
     (else_try),
       (eq, ":scene_prop_id", "spr_mm_limber_button"),
@@ -180,7 +152,7 @@ check_mm_use_cannon_prop_start_trigger = (ti_on_scene_prop_start_use,
       (eq, ":scene_prop_id", "spr_mm_bomb_button"),
       #(assign, ":anim_id", "anim_"),
     (try_end),
-
+    
     (try_begin),
       (gt,":anim_id",-1),
       # stop current anim
@@ -195,12 +167,12 @@ check_mm_use_cannon_prop_end_trigger = (ti_on_scene_prop_use,
   [
     (store_trigger_param_1, ":agent_id"),
     (store_trigger_param_2, ":instance_id"),
-
+    
     (call_script, "script_multiplayer_server_check_if_can_use_button", ":agent_id", ":instance_id"),
     (eq, reg0, 1),
-
+    
     (agent_set_slot,":agent_id", slot_agent_frizzle_times,0), # Reset frizzles
-
+    
     (call_script, "script_use_item", ":instance_id", ":agent_id"),
    ])
 
@@ -210,36 +182,36 @@ check_mm_use_cannon_prop_cancel_trigger = (ti_on_scene_prop_cancel_use,
     (store_trigger_param_2, ":instance_id"),
 
     (prop_instance_get_scene_prop_kind, ":scene_prop_id", ":instance_id"),
-
+    
     (try_begin),
       (this_or_next|is_between,":scene_prop_id","spr_mm_load_cartridge_button","spr_mm_reload_button"),
       (eq, ":scene_prop_id", "spr_mm_reload_button"),
       (agent_set_animation, ":agent_id", "anim_cannon_end", 1),
     (try_end),
   ])
-
+  
 check_item_use_trigger = (ti_on_scene_prop_use,
   [
     (store_trigger_param_1, ":agent_id"),
     (store_trigger_param_2, ":instance_id"),
-
+    
     #for only server itself-----------------------------------------------------------------------------------------------
     (call_script, "script_use_item", ":instance_id", ":agent_id"),
-    #for only server itself-----------------------------------------------------------------------------------------------
+    #for only server itself-----------------------------------------------------------------------------------------------                          
     (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
       (player_is_active, ":player_no"),
       (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_use_item, ":instance_id", ":agent_id"),
     (try_end),
   ])
-
+  
 check_cannon_animation_finished_trigger = (ti_on_scene_prop_animation_finished,
   [
     (store_trigger_param_1, ":instance_id"),
-
+    
     (try_begin),
       (scene_prop_slot_eq, ":instance_id", scene_prop_slot_just_pushed_back, 1), # Just has been pushed back by player.
       (scene_prop_set_slot,":instance_id",scene_prop_slot_just_pushed_back,0),
-
+      
       (call_script,"script_cannon_instance_get_barrel",":instance_id"), # then activate the aim button.
       (call_script, "script_prop_instance_find_first_child_of_type", reg0, "spr_mm_aim_button"),
       (call_script,"script_set_prop_child_active",reg0),
@@ -249,50 +221,50 @@ check_cannon_animation_finished_trigger = (ti_on_scene_prop_animation_finished,
 check_cannon_wheels_animation_finished_trigger = (ti_on_scene_prop_animation_finished,
   [
     (store_trigger_param_1, ":instance_id"),
-
+    
     (try_begin),
       (scene_prop_slot_eq, ":instance_id", scene_prop_slot_just_pushed_back, 1), # Just has been pushed back by player.
       (scene_prop_set_slot,":instance_id",scene_prop_slot_just_pushed_back,0),
-
+      
       (scene_prop_get_slot,reg0,":instance_id", scene_prop_slot_parent_prop),
       (call_script,"script_cannon_instance_get_barrel",reg0), # then activate the aim button.
       (call_script, "script_prop_instance_find_first_child_of_type", reg0, "spr_mm_aim_button"),
       (call_script,"script_set_prop_child_active",reg0),
     (try_end),
   ])
-
+  
 check_sally_door_use_trigger_double = (ti_on_scene_prop_use,
   [
     (store_trigger_param_1, ":agent_id"),
     (store_trigger_param_2, ":instance_id"),
-
+    
     (scene_prop_slot_ge,":instance_id",scene_prop_slot_health,1),
-
+    
     (agent_get_position, pos1, ":agent_id"),
     (prop_instance_get_starting_position, pos2, ":instance_id"),
-
+    
     (scene_prop_get_slot, ":opened_or_closed", ":instance_id", scene_prop_open_or_close_slot),
 
     (try_begin),
       #out doors like castle sally door can be opened only from inside, if door coordinate is behind your coordinate. Also it can be closed from both sides.
-
+      
       #(prop_instance_get_scene_prop_kind, ":scene_prop_id", ":instance_id"),
-
+      
       (prop_instance_get_variation_id,":combined_val",":instance_id"),
       #(store_div, ":reversed_rotation", ":combined_val", 10),
       (store_mod, ":owner_team", ":combined_val", 10),
-
+      
       #(assign, ":can_open_door", 0),
       # (try_begin),
         # (eq, "$g_multiplayer_game_type", multiplayer_game_type_siege),
-
+        
         #(prop_instance_get_variation_id_2,":reversed_rotation",":instance_id"),
         # (try_begin),
           # (neg|eq, ":scene_prop_id", "spr_viking_keep_destroy_sally_door_right"),
           # (neg|eq, ":scene_prop_id", "spr_viking_keep_destroy_sally_door_left"),
           # (neg|eq, ":scene_prop_id", "spr_earth_sally_gate_right"),
           # (neg|eq, ":scene_prop_id", "spr_earth_sally_gate_left"),
-
+          
           # (try_begin),
             # (eq,":reversed_rotation",1),
             # (neg|position_is_behind_position, pos1, pos2),
@@ -301,7 +273,7 @@ check_sally_door_use_trigger_double = (ti_on_scene_prop_use,
             # (position_is_behind_position, pos1, pos2),
             # (assign, ":can_open_door", 1),
           # (try_end),
-        # (else_try),
+        # (else_try),  
           # (this_or_next|eq, ":scene_prop_id", "spr_viking_keep_destroy_sally_door_right"),
           # (this_or_next|eq, ":scene_prop_id", "spr_viking_keep_destroy_sally_door_left"),
           # (this_or_next|eq, ":scene_prop_id", "spr_earth_sally_gate_right"),
@@ -318,17 +290,17 @@ check_sally_door_use_trigger_double = (ti_on_scene_prop_use,
       # (else_try),
         (assign, ":can_open_door", 1),
       #(try_end),
-
+      
       (try_begin),
         #(prop_instance_get_variation_id,":owner_team",":instance_id"),
         (is_between,":owner_team",1,3), # either 1 or 2
         (val_sub,":owner_team",1), # 1 = team1   2 = team2  however teams are 0 and 1 so sub 1.
-
+        
         (agent_get_team, ":agent_team", ":agent_id"),
         (neq, ":agent_team", ":owner_team"),
         (assign,":can_open_door",0),
       (try_end),
-
+      
       # pos56 is sound pos.
       (copy_position,pos56,pos2),
       (try_begin),
@@ -337,11 +309,11 @@ check_sally_door_use_trigger_double = (ti_on_scene_prop_use,
           (store_mission_timer_a,":cur_time"),
           (agent_get_slot,":sound_at",":agent_id",slot_agent_last_sound_at),
           (store_sub,":elapsed_time",":cur_time",":sound_at"),
-
+          
           (ge,":elapsed_time",1), # 1 second or more.
-
+          
           (agent_set_slot, ":agent_id", slot_agent_last_sound_at, ":cur_time"),
-
+          
           (call_script,"script_multiplayer_server_play_sound_at_position","snd_door_lock"),
         (try_end),
       (else_try),
@@ -351,10 +323,10 @@ check_sally_door_use_trigger_double = (ti_on_scene_prop_use,
         (else_try),
           (call_script,"script_multiplayer_server_play_sound_at_position","snd_door_open"),
         (try_end),
-
+      
         #for only server itself-----------------------------------------------------------------------------------------------
         (call_script, "script_use_item", ":instance_id", ":agent_id"),
-        #for only server itself-----------------------------------------------------------------------------------------------
+        #for only server itself-----------------------------------------------------------------------------------------------                        
         (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
           (player_is_active, ":player_no"),
           (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_use_item, ":instance_id", ":agent_id"),
@@ -369,31 +341,31 @@ check_sally_door_use_trigger = (ti_on_scene_prop_use,
     (store_trigger_param_2, ":instance_id"),
 
     (scene_prop_slot_ge,":instance_id",scene_prop_slot_health,1),
-
+    
     (agent_get_position, pos1, ":agent_id"),
     (prop_instance_get_starting_position, pos2, ":instance_id"),
-
+    
     (scene_prop_get_slot, ":opened_or_closed", ":instance_id", scene_prop_open_or_close_slot),
     (prop_instance_get_variation_id,":combined_val",":instance_id"),
     #(store_div, ":reversed_rotation", ":combined_val", 10),
     (store_mod, ":owner_team", ":combined_val", 10),
-
+    
     (try_begin),
       #out doors like castle sally door can be opened only from inside, if door coordinate is behind your coordinate. Also it can be closed from both sides.
-
+      
       (assign,":can_open_door",1),
       (try_begin),
         #(prop_instance_get_variation_id,":owner_team",":instance_id"),
         (is_between,":owner_team",1,3), # either 1 or 2
         (val_sub,":owner_team",1), # 1 = team1   2 = team2  however teams are 0 and 1 so sub 1.
-
+        
         (agent_get_team, ":agent_team", ":agent_id"),
         (neq, ":agent_team", ":owner_team"),
         (assign,":can_open_door",0),
       (try_end),
       # (try_begin),
         # (eq, "$g_multiplayer_game_type", multiplayer_game_type_siege),
-
+        
         ##(prop_instance_get_variation_id_2,":reversed_rotation",":instance_id"),
         # (try_begin),
           # (eq,":reversed_rotation",1),
@@ -404,7 +376,7 @@ check_sally_door_use_trigger = (ti_on_scene_prop_use,
           # (assign,":can_open_door",0),
         # (try_end),
       # (try_end),
-
+      
       # pos56 is sound pos.
       (copy_position,pos56,pos2),
       (try_begin),
@@ -413,11 +385,11 @@ check_sally_door_use_trigger = (ti_on_scene_prop_use,
           (store_mission_timer_a,":cur_time"),
           (agent_get_slot,":sound_at",":agent_id",slot_agent_last_sound_at),
           (store_sub,":elapsed_time",":cur_time",":sound_at"),
-
+          
           (ge,":elapsed_time",1), # 1 second or more.
-
+          
           (agent_set_slot, ":agent_id", slot_agent_last_sound_at, ":cur_time"),
-
+          
           (call_script,"script_multiplayer_server_play_sound_at_position","snd_door_lock"),
         (try_end),
       (else_try),
@@ -427,10 +399,10 @@ check_sally_door_use_trigger = (ti_on_scene_prop_use,
         (else_try),
           (call_script,"script_multiplayer_server_play_sound_at_position","snd_door_open"),
         (try_end),
-
+        
         #for only server itself-----------------------------------------------------------------------------------------------
         (call_script, "script_use_item", ":instance_id", ":agent_id"),
-        #for only server itself-----------------------------------------------------------------------------------------------
+        #for only server itself-----------------------------------------------------------------------------------------------                            
         (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
           (player_is_active, ":player_no"),
           (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_use_item, ":instance_id", ":agent_id"),
@@ -445,15 +417,15 @@ check_castle_door_use_trigger = (ti_on_scene_prop_use,
     (store_trigger_param_2, ":instance_id"),
 
     (scene_prop_slot_ge,":instance_id",scene_prop_slot_health,1),
-
+    
     (agent_get_position, pos1, ":agent_id"),
     (prop_instance_get_starting_position, pos2, ":instance_id"),
-
+    
     (scene_prop_get_slot, ":opened_or_closed", ":instance_id", scene_prop_open_or_close_slot),
     (prop_instance_get_variation_id,":combined_val",":instance_id"),
     #(store_div, ":reversed_rotation", ":combined_val", 10),
     (store_mod, ":owner_team", ":combined_val", 10),
-
+    
     (try_begin),
       (ge, ":agent_id", 0),
       (agent_get_team, ":agent_team", ":agent_id"),
@@ -469,11 +441,11 @@ check_castle_door_use_trigger = (ti_on_scene_prop_use,
       (try_begin),
         (is_between,":owner_team",1,3), # either 1 or 2
         (val_sub,":owner_team",1), # 1 = team1   2 = team2  however teams are 0 and 1 so sub 1.
-
+        
         (neq, ":agent_team", ":owner_team"),
         (assign,":can_open_door",0),
       (try_end),
-
+      
       # pos56 is sound pos.
       (copy_position,pos56,pos2),
       (try_begin),
@@ -482,11 +454,11 @@ check_castle_door_use_trigger = (ti_on_scene_prop_use,
           (store_mission_timer_a,":cur_time"),
           (agent_get_slot,":sound_at",":agent_id",slot_agent_last_sound_at),
           (store_sub,":elapsed_time",":cur_time",":sound_at"),
-
+          
           (ge,":elapsed_time",1), # 1 second or more.
-
+          
           (agent_set_slot, ":agent_id", slot_agent_last_sound_at, ":cur_time"),
-
+          
           (call_script,"script_multiplayer_server_play_sound_at_position","snd_door_lock"),
         (try_end),
       (else_try),
@@ -496,10 +468,10 @@ check_castle_door_use_trigger = (ti_on_scene_prop_use,
         (else_try),
           (call_script,"script_multiplayer_server_play_sound_at_position","snd_door_open"),
         (try_end),
-
+        
         #for only server itself-----------------------------------------------------------------------------------------------
         (call_script, "script_use_item", ":instance_id", ":agent_id"),
-        #for only server itself-----------------------------------------------------------------------------------------------
+        #for only server itself-----------------------------------------------------------------------------------------------                           
         (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
           (player_is_active, ":player_no"),
           (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_use_item, ":instance_id", ":agent_id"),
@@ -509,7 +481,7 @@ check_castle_door_use_trigger = (ti_on_scene_prop_use,
   ])
 
 check_ladder_animate_trigger = (ti_on_scene_prop_is_animating,
-  [
+  [      
     (store_trigger_param_1, ":instance_id"),
     (store_trigger_param_2, ":remaining_time"),
 
@@ -525,9 +497,9 @@ check_ladder_animation_finish_trigger = (ti_on_scene_prop_animation_finished,
 
 check_common_object_hit_trigger = (ti_on_scene_prop_hit,
   [
-    (store_trigger_param_1, ":instance_no"),
+    (store_trigger_param_1, ":instance_no"),       
     (store_trigger_param_2, ":damage"),
-
+     
     (set_trigger_result,0), #Don't deal any normal damage to the prop
 
     (set_fixed_point_multiplier, 1),
@@ -535,7 +507,7 @@ check_common_object_hit_trigger = (ti_on_scene_prop_hit,
     (set_fixed_point_multiplier, 100),
     (agent_is_active,":agent_id"),
     (agent_is_alive, ":agent_id"),
-
+    
     (agent_get_wielded_item,":item_id",":agent_id",0),
     (try_begin),
       (this_or_next|eq,":item_id","itm_sapper_axe_rus"),
@@ -547,7 +519,7 @@ check_common_object_hit_trigger = (ti_on_scene_prop_hit,
       (eq,":item_id","itm_construction_hammer"),
       (assign,":damage",-25),
     (try_end),
-
+    
     # apply dmg
     (scene_prop_get_hit_points, ":hit_points", ":instance_no"),
     (scene_prop_get_slot,":max_health",":instance_no",scene_prop_slot_max_health),
@@ -556,7 +528,7 @@ check_common_object_hit_trigger = (ti_on_scene_prop_hit,
     (val_min,":hit_points", ":max_health"),
     (scene_prop_set_cur_hit_points, ":instance_no", ":hit_points"),
     (scene_prop_set_slot,":instance_no",scene_prop_slot_health,":hit_points"),
-
+    
     (try_begin),
       (gt, ":hit_points", 0),
       (play_sound, "snd_dummy_hit"),
@@ -577,23 +549,16 @@ check_common_object_hit_trigger = (ti_on_scene_prop_hit,
 check_common_door_destroy_trigger = (ti_on_scene_prop_destroy,
   [
     (play_sound, "snd_dummy_destroyed"),
-
+    
     (try_begin),
       (this_or_next|multiplayer_is_server),
       (neg|game_in_multiplayer_mode),
 
-      (store_trigger_param_1, ":instance_no"),
+      (store_trigger_param_1, ":instance_no"),      
       (store_trigger_param_2, ":attacker_agent_no"),
 
       (set_fixed_point_multiplier, 100),
       (prop_instance_get_position, pos1, ":instance_no"),
-      (prop_instance_get_scene_prop_kind, ":prop_kind", ":instance_no"),
-
-      (try_begin),
-        (eq,":prop_kind","spr_mm_restroom_door"),
-
-        (position_rotate_z,pos1,90),
-      (try_end),
 
       (assign, ":rotate_side", 88),
       (try_begin),
@@ -604,7 +569,7 @@ check_common_door_destroy_trigger = (ti_on_scene_prop_destroy,
           (val_mul, ":rotate_side", -1),
         (try_end),
       (try_end),
-
+    
       (init_position, pos3),
 
       (try_begin),
@@ -613,7 +578,7 @@ check_common_door_destroy_trigger = (ti_on_scene_prop_destroy,
       (else_try),
         (position_move_y, pos3, 100),
       (try_end),
-
+    
       (position_move_x, pos3, -50),
       (position_transform_position_to_parent, pos4, pos1, pos3),
       (position_move_z, pos4, 100),
@@ -631,15 +596,7 @@ check_common_door_destroy_trigger = (ti_on_scene_prop_destroy,
         (val_sub, ":rotate_side", ":z_difference"),
       (try_end),
 
-      (try_begin),
-        (eq,":prop_kind","spr_mm_restroom_door"),
-
-        (position_rotate_z,pos1,-90),
-        (position_rotate_y, pos1, ":rotate_side"),
-      (else_try),
-        (position_rotate_x, pos1, ":rotate_side"),
-      (try_end),
-
+      (position_rotate_x, pos1, ":rotate_side"),
       (prop_instance_animate_to_position, ":instance_no", pos1, 70), #animate to position 1 in 0.7 second
     (try_end),
   ])
@@ -647,7 +604,7 @@ check_common_door_destroy_trigger = (ti_on_scene_prop_destroy,
 check_common_constructible_props_destroy_trigger = (ti_on_scene_prop_destroy,
   [
     (play_sound, "snd_dummy_destroyed"),
-
+    
     (try_begin),
       (this_or_next|multiplayer_is_server),
       (neg|game_in_multiplayer_mode),
@@ -655,18 +612,18 @@ check_common_constructible_props_destroy_trigger = (ti_on_scene_prop_destroy,
       (store_trigger_param_1, ":instance_no"),
       (prop_instance_get_scene_prop_kind, ":prop_kind", ":instance_no"),
       (scene_prop_get_slot,":attacker_agent_id",":instance_no",scene_prop_slot_last_hit_by),
-
-      (prop_instance_get_position, pos49, ":instance_no"),
-
+      
+      (prop_instance_get_position, pos49, ":instance_no"),            
+      
       (particle_system_burst, "psys_dummy_straw", pos49, 20),
       (particle_system_burst, "psys_dummy_smoke", pos49, 50),
 
       (call_script, "script_clean_up_prop_instance", ":instance_no"),
-
+      
       (store_add,":cost_index",construct_costs_offset,":prop_kind"),
       (troop_get_slot,":prop_cost","trp_track_select_dummy",":cost_index"),
       (val_sub,":prop_cost",1), #Return prop cost -1 build points when deconstructing
-
+      
       (agent_is_active,":attacker_agent_id"),
       (agent_get_team,":team_no",":attacker_agent_id"),
       (try_begin),
@@ -674,8 +631,8 @@ check_common_constructible_props_destroy_trigger = (ti_on_scene_prop_destroy,
         (val_add,"$g_team_1_build_points",":prop_cost"),
       (else_try),
         (val_add,"$g_team_2_build_points",":prop_cost"),
-      (try_end),
-
+      (try_end),     
+      
       (try_for_range, ":player_no2", 1, multiplayer_player_loops_end), #0 is server no need to write it
         (player_is_active, ":player_no2"),
         (multiplayer_send_2_int_to_player, ":player_no2", multiplayer_event_return_build_points,"$g_team_1_build_points","$g_team_2_build_points"),
@@ -683,25 +640,25 @@ check_common_constructible_props_destroy_trigger = (ti_on_scene_prop_destroy,
 
     (try_end),
   ])
-
+  
 check_common_destructible_props_destroy_trigger = (ti_on_scene_prop_destroy,
   [
     (play_sound, "snd_dummy_destroyed"),
-
+    
     (try_begin),
       (this_or_next|multiplayer_is_server),
       (neg|game_in_multiplayer_mode),
 
       (store_trigger_param_1, ":instance_no"),
       (prop_instance_get_scene_prop_kind, ":prop_kind", ":instance_no"),
-
-      (prop_instance_get_position, pos49, ":instance_no"),
-
+      
+      (prop_instance_get_position, pos49, ":instance_no"),            
+      
       (particle_system_burst, "psys_dummy_straw", pos49, 20),
       (particle_system_burst, "psys_dummy_smoke", pos49, 50),
 
       (call_script, "script_clean_up_prop_instance", ":instance_no"),
-
+      
       (assign,":prop_to_spawn",-1),
       (try_begin),
         (eq,":prop_kind","spr_mm_stakes_destructible"),
@@ -720,22 +677,22 @@ check_common_destructible_props_destroy_trigger = (ti_on_scene_prop_destroy,
         (assign,":prop_to_spawn","spr_gabiondeploy_construct"),
       (else_try),
         (eq,":prop_kind","spr_mm_fence1"),
-        (assign,":prop_to_spawn","spr_mm_fence1d"),
+        (assign,":prop_to_spawn","spr_mm_fence1d"),  
       (try_end),
-
+      
       (gt,":prop_to_spawn",-1),
-
+      
       # Spawn destroyed prop
       (call_script, "script_find_or_create_scene_prop_instance", ":prop_to_spawn", 0, 0),
     (try_end),
   ])
-
+  
 check_common_construction_props_start_use_trigger = (ti_on_scene_prop_start_use,
   [
     (neg|multiplayer_is_dedicated_server),
     (store_trigger_param_1, ":agent_no"),
     #(store_trigger_param_2, ":instance_no"),
-
+    
     (multiplayer_get_my_player,":my_player"),
     (player_get_agent_id,":my_agent_no",":my_player"),
     (eq,":my_agent_no",":agent_no"),
@@ -769,22 +726,22 @@ check_common_construction_props_use_trigger = (ti_on_scene_prop_use,
     (try_begin),
       (this_or_next|multiplayer_is_server),
       (neg|game_in_multiplayer_mode),
-
+     
       (store_trigger_param_1, ":agent_id"),
       (store_trigger_param_2, ":instance_no"),
-
+     
       (agent_get_troop_id,":troop_id",":agent_id"),
       (call_script, "script_multiplayer_get_troop_class", ":troop_id"),
       (eq, reg0, multi_troop_class_mm_sapper), # we has a sappeur :3
-
+     
       (prop_instance_get_scene_prop_kind, ":prop_kind", ":instance_no"),
-
+     
       (agent_get_wielded_item,":item_id",":agent_id",0),
       (try_begin),
         (eq,":item_id","itm_construction_hammer"), #Only constructable with hammer
-
-        (prop_instance_get_position, pos49, ":instance_no"),
-
+        
+        (prop_instance_get_position, pos49, ":instance_no"),  
+        
         (call_script, "script_clean_up_prop_instance", ":instance_no"),
 
         (assign,":prop_to_spawn",-1),
@@ -822,13 +779,13 @@ check_common_construction_props_use_trigger = (ti_on_scene_prop_use,
           (eq,":prop_kind","spr_mm_fence1d"),
           (assign,":prop_to_spawn","spr_mm_fence1"),
         (try_end),
-
+        
         (gt,":prop_to_spawn",-1),
-
+      
         (call_script, "script_find_or_create_scene_prop_instance", ":prop_to_spawn", 0, 1),
       (else_try),
         (eq,":item_id","itm_construction_hammer_alt"), #Deconstructable with alt hammer
-
+       
         (store_add,":cost_index",construct_costs_offset,":prop_kind"),
         (troop_get_slot,":prop_cost","trp_track_select_dummy",":cost_index"),
         (val_sub,":prop_cost",1), #Return prop cost -1 build points when deconstructing
@@ -844,31 +801,31 @@ check_common_construction_props_use_trigger = (ti_on_scene_prop_use,
           (player_is_active, ":player_no"),
           (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_return_build_points,"$g_team_1_build_points","$g_team_2_build_points"),
         (try_end),
-
+        
         (call_script, "script_clean_up_prop_instance", ":instance_no"),
       (try_end),
     (try_end),
   ])
-
+  
 check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
   [
     (store_trigger_param_1, ":instance_no"),
     (store_trigger_param_2, ":damage"),
-
+    
     (try_begin),
       (prop_instance_get_scene_prop_kind, ":prop_kind", ":instance_no"),
-
+      
       (set_trigger_result,0), #Don't deal any normal damage to the prop
-
+     
       (scene_prop_get_hit_points, ":health", ":instance_no"),
       (scene_prop_get_slot,":max_health",":instance_no",scene_prop_slot_max_health),
-
+      
       (set_fixed_point_multiplier, 1),
       (position_get_x, ":agent_id", pos2),
       (set_fixed_point_multiplier, 100),
       (agent_is_active,":agent_id"),
       (agent_is_alive, ":agent_id"),
-
+      
       (assign,":hit_sound","snd_dummy_hit"),
       (assign,":hit_smoke","psys_dummy_smoke"),
       (assign,":hit_particles","psys_dummy_straw"),
@@ -876,7 +833,7 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
       (assign,":hit_particles_size",10),
       (assign,":apply_dmg",1),
       (assign,":update_dmg",1),
-
+      
       (agent_get_wielded_item,":item_id",":agent_id",0),
       (try_begin),
         (this_or_next|eq,":item_id","itm_sapper_axe_rus"),
@@ -885,22 +842,22 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
         (eq,":item_id","itm_russian_peasant_2handed_axe"),
 
         (neq,":prop_kind","spr_earthwork1_destructible"), # not for earth prop.
-
+        
         (val_mul,":damage",2),
       (else_try),
         (eq,":item_id","itm_construction_hammer"), #Only constructable with hammer
-
+        
         (agent_get_troop_id,":troop_id",":agent_id"),
-
+        
         # we has a sappeur :3
         (this_or_next|eq, ":troop_id", "trp_french_sapper"), # French
         (this_or_next|eq, ":troop_id", "trp_russian_sapper"), # Russian
         (this_or_next|eq, ":troop_id", "trp_british_sapper"), # British
         (this_or_next|eq, ":troop_id", "trp_austrian_sapper"), # Austrian
                      (eq, ":troop_id", "trp_prussian_sapper"), # Prussian
-
+        
         (neq,":prop_kind","spr_earthwork1_destructible"), # not for earth prop.
-
+        
         (assign,":hit_sound","snd_hammer"),
         (assign,":apply_dmg",0),
 
@@ -909,27 +866,27 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
 
         (try_begin),
           (ge,":health",":max_health"),
-
+          
           (is_between,":prop_kind","spr_mm_palisadedd","spr_crate_explosive"), # a construction object
-
+          
           (assign,":update_dmg",0),
-
+          
           (this_or_next|multiplayer_is_server), # only on servers.
           (neg|game_in_multiplayer_mode),
-
+       
           (prop_instance_get_position, pos49, ":instance_no"),
-
+          
           (call_script, "script_clean_up_prop_instance", ":instance_no"),
-
+          
           (call_script, "script_get_prop_kind_for_constr_kind", ":prop_kind"),
           (assign,":prop_to_spawn",reg0),
           (assign,":x_offset",reg1),
           (assign,":y_offset",reg2),
           (assign,":z_offset",reg3),
           (assign,":dont_rotate_to_ground",reg4),
-
+          
           (gt,":prop_to_spawn",-1),
-
+          
           (try_begin),
             (eq,":dont_rotate_to_ground",1),
             (init_position,pos37),
@@ -938,11 +895,11 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
             (position_rotate_z,pos37,":z_rot"),
             (copy_position,pos49,pos37),
           (try_end),
-
+          
           (position_move_x,pos49,":x_offset"),
           (position_move_y,pos49,":y_offset"),
           (position_move_z,pos49,":z_offset"),
-
+          
           (try_begin),
             (eq,":dont_rotate_to_ground",1),
             (call_script, "script_find_or_create_scene_prop_instance", ":prop_to_spawn", 0, 0),
@@ -951,12 +908,12 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
           (try_end),
         (try_end),
       (try_end),
-
+     
       (try_begin), # with earth digs we have some specialll stuff.
         (eq,":prop_kind","spr_earthwork1_destructible"),
-
+        
         (assign,":apply_dmg",0),
-
+        
         (try_begin),
           (neq,":item_id","itm_shovel"),
           (neq,":item_id","itm_shovel_undig"),
@@ -964,16 +921,16 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
           (assign,":hit_smoke",-1),
           (assign,":hit_particles",-1),
         (try_end),
-
+        
         (this_or_next|eq,":item_id","itm_shovel"),
         (eq,":item_id","itm_shovel_undig"),
-
+          
         (assign,":hit_sound","snd_shovel"),
-
+        
         (call_script,"script_move_pioneer_ground",":instance_no",":item_id",":health",":max_health"),
         (assign,":health",reg0),
       (try_end),
-
+      
       (try_begin), # not a pioneer
         (eq,":apply_dmg",1),
         (try_begin), # for construction objects hit by anyone else then pioneers dont do anything.
@@ -987,7 +944,7 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
           (val_max,":health",0),
         (try_end),
       (try_end),
-
+      
       (try_begin),
         (eq,":update_dmg",1),
         (this_or_next|multiplayer_is_server), # only on servers.
@@ -995,7 +952,7 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
         (scene_prop_set_cur_hit_points, ":instance_no", ":health"),
         (scene_prop_set_slot,":instance_no",scene_prop_slot_health,":health"),
       (try_end),
-
+      
       (try_begin),
         (gt, ":health", 0),
         (try_begin),
@@ -1014,7 +971,7 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
           (gt,":hit_smoke",-1),
           (particle_system_burst_no_sync, ":hit_smoke", pos1, ":hit_smoke_size"),
         (try_end),
-
+        
         (try_begin),
           (gt,":hit_particles",-1),
           (particle_system_burst_no_sync, ":hit_particles", pos1, ":hit_particles_size"),
@@ -1026,77 +983,77 @@ check_common_constructable_prop_on_hit_trigger = (ti_on_scene_prop_hit,
 check_common_earth_on_hit_trigger = (ti_on_scene_prop_hit,
   [
     (play_sound, "snd_shovel"),
-
+  
     (try_begin),
       (this_or_next|multiplayer_is_server),
       (neg|game_in_multiplayer_mode),
-
+      
       (store_trigger_param_1, ":instance_no"),
       (prop_instance_get_scene_prop_kind, ":prop_kind", ":instance_no"),
-
-
+      
+      
       (prop_instance_get_position,pos4,":instance_no"),
-
+      
       (set_fixed_point_multiplier, 1),
       (position_get_x, ":agent_id", pos2),
       (ge, ":agent_id", 0),
       (agent_is_alive, ":agent_id"),
       (agent_get_wielded_item,":item_id",":agent_id",0),
       (eq,":item_id","itm_shovel"),
-
+      
       (assign,":continue",1),
-
+      
       (try_begin),
         (eq,":prop_kind","spr_mm_tunnel_wall"),
-
-        (scene_prop_get_num_instances, ":num_instances_of_scene_prop", "spr_mm_tunnel_wall"),
+        
+        (scene_prop_get_num_instances, ":num_instances_of_scene_prop", "spr_mm_tunnel_wall"),     
         (try_for_range, ":cur_instance", 0, ":num_instances_of_scene_prop"),
           (scene_prop_get_instance, ":cur_instance_id", "spr_mm_tunnel_wall", ":cur_instance"),
           (neq,":cur_instance_id",":instance_no"),
           (prop_instance_get_position,pos3,":cur_instance_id"),
           (get_distance_between_positions,":distance",pos4,pos3),
           (lt,":distance",100),
-
+    
           (particle_system_burst, "psys_dummy_smoke_big", pos4, 100),
-
+          
           (position_move_z,pos4,-2000,1),
           (prop_instance_animate_to_position, ":instance_no", pos4, 0),
           (prop_instance_animate_to_position, ":cur_instance_id", pos4, 0),
-
+          
           (assign,":num_instances_of_scene_prop",0),
           (assign,":continue",0),
         (try_end),
-
+        
         (position_move_y,pos4,-12,0),
       (else_try),
         (position_move_z,pos4,-12,0),
       (try_end),
-
+      
       (eq,":continue",1),
-
+      
       (prop_instance_animate_to_position, ":instance_no", pos4, 6),
-
+      
       (particle_system_burst, "psys_dummy_smoke", pos1, 10),
     (try_end),
   ])
-
+  
 check_common_target_hit_trigger = (ti_on_scene_prop_hit,
   [
     (try_begin),
       (this_or_next|multiplayer_is_server),
       (neg|game_in_multiplayer_mode),
-
+      
       (store_trigger_param_1, ":instance_no"),
       (set_fixed_point_multiplier, 1),
       (position_get_x, ":attacker_agent_id", pos2),
       (set_fixed_point_multiplier, 100),
-
+      
       (agent_is_active,":attacker_agent_id"),
-
+      
       (agent_get_wielded_item,":item_id",":attacker_agent_id",0),
-
+        
       (item_slot_eq,":item_id",slot_item_multiplayer_item_class, multi_item_class_type_gun), #always use item classes!!!
-
+      
       (prop_instance_get_position, pos2, ":instance_no"),
       (agent_get_position, pos3, ":attacker_agent_id"),
       (get_distance_between_positions, ":player_distance", pos3, pos2),
@@ -1118,19 +1075,19 @@ check_common_target_hit_trigger = (ti_on_scene_prop_hit,
       (val_div, ":player_distance", 100), #Let's be international and use meters here (historically correct for France too since 1793...)
       (assign, reg60, ":point_earned"),
       (assign, reg61, ":player_distance"),
-
+      
       (try_begin),
         (game_in_multiplayer_mode),
-
+        
         (agent_get_player_id,":player_id",":attacker_agent_id"),
         (player_is_active,":player_id"),
-
+        
         (multiplayer_send_string_to_player, ":player_id", multiplayer_event_show_server_message, "str_archery_target_hit"),
       (else_try),
         (neg|game_in_multiplayer_mode),
         (call_script, "script_client_get_my_agent"),
         (eq, ":attacker_agent_id", reg0), # Only for myself.
-
+        
         (display_message, "str_archery_target_hit"),
         (try_begin),
           (gt,":point_earned",0),
@@ -1140,20 +1097,20 @@ check_common_target_hit_trigger = (ti_on_scene_prop_hit,
       (try_end),
     (try_end),
   ])
-
+    
 check_common_dummy_destroy_trigger = (ti_on_scene_prop_destroy,
   [
     (play_sound, "snd_dummy_destroyed"),
-
+    
     (try_begin),
       (this_or_next|multiplayer_is_server),
       (neg|game_in_multiplayer_mode),
-
+   
       (store_trigger_param_1, ":instance_no"),
       (scene_prop_get_slot,":attacker_agent_id",":instance_no",scene_prop_slot_last_hit_by),
-
+      
       (prop_instance_get_starting_position, pos1, ":instance_no"),
-
+      
       (assign, ":rotate_side", 80),
       (try_begin),
         (agent_is_active,":attacker_agent_id"),
@@ -1163,7 +1120,7 @@ check_common_dummy_destroy_trigger = (ti_on_scene_prop_destroy,
       (try_end),
       (position_rotate_x, pos1, ":rotate_side"),
       (prop_instance_animate_to_position, ":instance_no", pos1, 70), #animate to position 1 in 0.7 second
-
+        
       (try_begin),
         (neg|game_in_multiplayer_mode),
         (eq,"$g_is_tutorial",1),
@@ -1171,23 +1128,23 @@ check_common_dummy_destroy_trigger = (ti_on_scene_prop_destroy,
       (try_end),
     (try_end),
   ])
-
+    
 check_common_dummy_on_hit_trigger = (ti_on_scene_prop_hit,
     [
       (play_sound, "snd_dummy_hit"),
-
+      
       (try_begin),
         (this_or_next|multiplayer_is_server),
         (neg|game_in_multiplayer_mode),
-
+        
         (store_trigger_param_1, ":instance_no"),
         (store_trigger_param_2, ":damage"),
         (set_fixed_point_multiplier, 1),
         (position_get_x, ":attacker_agent_id", pos2),
         (set_fixed_point_multiplier, 100),
-
+        
         (scene_prop_set_slot,":instance_no",scene_prop_slot_last_hit_by,":attacker_agent_id"),
-
+      
         (assign, reg60, ":damage"),
         (val_div, ":damage", 8),
         (prop_instance_get_position, pos2, ":instance_no"),
@@ -1199,13 +1156,13 @@ check_common_dummy_on_hit_trigger = (ti_on_scene_prop_hit,
           (val_mul, ":damage", -1),
         (try_end),
         (position_rotate_x, pos2, ":damage"),
-
+        
         (try_begin),
           (game_in_multiplayer_mode),
-
+          
           (agent_get_player_id,":player_id",":attacker_agent_id"),
           (player_is_active,":player_id"),
-
+          
           (multiplayer_send_string_to_player, ":player_id", multiplayer_event_show_server_message, "str_delivered_damage"),
         (else_try),
           (neg|game_in_multiplayer_mode),
@@ -1215,7 +1172,7 @@ check_common_dummy_on_hit_trigger = (ti_on_scene_prop_hit,
         (try_end),
 
         (prop_instance_animate_to_position, ":instance_no", pos2, 30), #animate to position 2 in 0.3 second
-
+        
         (particle_system_burst, "psys_dummy_smoke", pos1, 3),
         (particle_system_burst, "psys_dummy_straw", pos1, 10),
       (try_end),
@@ -1225,27 +1182,49 @@ check_common_explosive_crate_use_trigger = (ti_on_scene_prop_use,
   [
     (store_trigger_param_1, ":agent_id"),
     (store_trigger_param_2, ":instance_id"),
-
+    
     (try_begin),
       (this_or_next|multiplayer_is_server),
       (neg|game_in_multiplayer_mode),
-
+      
       (scene_prop_get_slot,":cur_time",":instance_id",scene_prop_slot_time),
       (le,":cur_time",0),
       (scene_prop_set_slot,":instance_id", scene_prop_slot_time, 5), #Seconds until exploding
       (scene_prop_set_slot,":instance_id", scene_prop_slot_user_agent, ":agent_id"), #User agent
-
+      
       (scene_prop_enable_after_time, ":instance_id", 500),
-
+      
       (prop_instance_get_position,pos56,":instance_id"),
       (call_script,"script_multiplayer_server_play_sound_at_position","snd_crate_fuse"),
     (try_end),
   ])
+      #OPEN WORLD----------------------------------------------------------------------------------------------------------
+
+check_travel_portal_use_trigger = (ti_on_scene_prop_use, [
+    (store_trigger_param_1, ":agent_id"),
+    (store_trigger_param_2, ":instance_id"),
+
+    (assign, reg0, ":agent_id"),
+    (agent_get_player_id,":player_id",":agent_id"),
+    (assign, reg1,  ":player_id"),
+
+    (display_message,"@!travel portal was activated by agent {reg0} by player {reg1}"),
+
+    #send event to client
+    (get_max_players, ":num_players"),
+    (try_for_range, ":player_no", 1, ":num_players"), #0 is server so starting from 1
+        (eq, ":player_id",":player_no"),
+        #send unique player id
+        (player_get_unique_id,":unique_id",":player_id"),
+        (multiplayer_send_3_int_to_player, ":player_id", ow_multiplayer_event_travel, ":instance_id", ":unique_id",0),#0 means: first argument is an instance id, not another travelflag
+    (try_end),
+])
+
+  #OPEN WORLD END------------------------------------------------------------------------------------------------------
 
 
-
+  
 scene_props = [
-
 #OPEN WORLD---------------------------------------------------------------------------------------------------------------------------
      ("travel_passage_north",sokf_invisible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a",[check_travel_portal_use_trigger,
      ]),
@@ -1257,10 +1236,6 @@ scene_props = [
      ]),
 
 #OPEN WORLD END ----------------------------------------------------------------------------------------------------------------------
-
-
-
-
 
   ("invalid_object",0,"question_mark","0", []),
   ("inventory",sokf_type_container|sokf_place_at_origin,"0","bobaggage", []),
@@ -1366,12 +1341,12 @@ scene_props = [
         (particle_system_add_new, "psys_torch_fire_sparks"),
 
        # (play_sound, "snd_torch_loop", 0),
-
+        
         (set_position_delta,0,-35,56),
         (particle_system_add_new, "psys_fire_glow_1"),
 #        (particle_system_emit, "psys_fire_glow_1",9000000),
 
-#second method
+#second method        
         (get_trigger_object_position, pos2),
         (set_position_delta,0,0,0),
         (position_move_y, pos2, -35),
@@ -1403,7 +1378,7 @@ scene_props = [
   ("barrier_8m" ,sokf_invisible|sokf_type_barrier,"barrier_8m" ,"bo_barrier_8m" , []),
   ("barrier_4m" ,sokf_invisible|sokf_type_barrier,"barrier_4m" ,"bo_barrier_4m" , []),
   ("barrier_2m" ,sokf_invisible|sokf_type_barrier,"barrier_2m" ,"bo_barrier_2m" , []),
-
+  
   ("exit_4m" ,sokf_invisible|sokf_type_barrier_leave,"barrier_4m" ,"bo_barrier_4m" , []),
   ("exit_8m" ,sokf_invisible|sokf_type_barrier_leave,"barrier_8m" ,"bo_barrier_8m" , []),
   ("exit_16m" ,sokf_invisible|sokf_type_barrier_leave,"barrier_16m" ,"bo_barrier_16m" , []),
@@ -1442,15 +1417,15 @@ scene_props = [
   ("destroy_heap",0,"destroy_heap","bo_destroy_heap", []),
   ("destroy_castle_a",0,"destroy_castle_a","bo_destroy_castle_a", []),
   ("destroy_castle_b",0,"destroy_castle_b","bo_destroy_castle_b", []),
-
+  
   ("destroy_castle_c",0,"destroy_castle_c","bo_destroy_castle_c", []),
-
+  
   ("destroy_castle_d",0,"destroy_castle_d","bo_destroy_castle_d", []),
   ("destroy_windmill",0,"destroy_windmill","bo_destroy_windmill", []),
-
-  ("destroy_bridge_a",0,"destroy_bridge_a","bo_destroy_bridge_a", []),
-  ("destroy_bridge_b",0,"destroy_bridge_b","bo_destroy_bridge_b", []),
-
+   
+  ("destroy_bridge_a",0,"destroy_bridge_a","bo_destroy_bridge_a", []),  
+  ("destroy_bridge_b",0,"destroy_bridge_b","bo_destroy_bridge_b", []),    
+  
   ("broom",0,"broom","0", []),
   ("garlic",0,"garlic","0", []),
   ("garlic_b",0,"garlic_b","0", []),
@@ -1462,16 +1437,16 @@ scene_props = [
 
   ("bridge_wooden",0,"bridge_wooden","bo_bridge_wooden", []),
   ("bridge_wooden_snowy",0,"bridge_wooden_snowy","bo_bridge_wooden", []),
-
+  
   ("grave_a",0,"grave_a","bo_grave_a", []),
 
-
+  
   ("village_house_e",0,"village_house_e","bo_village_house_e", []),
   ("village_house_f",0,"village_house_f","bo_village_house_f", []),
+  
+ 
 
-
-
-  ("village_snowy_house_a",0,"village_snowy_house_a","bo_village_snowy_house_a", []),
+  ("village_snowy_house_a",0,"village_snowy_house_a","bo_village_snowy_house_a", []),  
   ("village_snowy_house_b",0,"village_snowy_house_b","bo_village_snowy_house_b", []),
   ("village_snowy_house_c",0,"village_snowy_house_c","bo_village_snowy_house_c", []),
   ("village_snowy_house_d",0,"village_snowy_house_d","bo_village_snowy_house_d", []),
@@ -1493,8 +1468,7 @@ scene_props = [
   ("awning_d",0,"awning_d","bo_awning_d", []),
 
 
-  ("mm_frigate",0,"frigate","bo_frigate", []),
-
+  #("mm_frigate",0,"frigate","bo_frigate", []),
   ("ship",0,"ship","bo_ship", []),
 
   ("ship_b",0,"ship_b","bo_ship_b", []),
@@ -1550,18 +1524,18 @@ scene_props = [
 
   ("castle_h_stairs_a",sokf_type_ladder,"castle_h_stairs_a","bo_castle_h_stairs_a", []),
   ("castle_h_stairs_b",0,"castle_h_stairs_b","bo_castle_h_stairs_b", []),
-
+  
   ("castle_f_doors_top_a",0,"castle_f_doors_top_a","bo_castle_f_doors_top_a", []),
-
+  
   ("castle_f_stairs_a",sokf_type_ladder,"castle_f_stairs_a","bo_castle_f_stairs_a", []),
   ("castle_f_wall_stairs_a",sokf_type_ladder,"castle_f_wall_stairs_a","bo_castle_f_wall_stairs_a", []),
   ("castle_f_wall_stairs_b",sokf_type_ladder,"castle_f_wall_stairs_b","bo_castle_f_wall_stairs_b", []),
   ("castle_f_wall_way_a",0,"castle_f_wall_way_a","bo_castle_f_wall_way_a", []),
   ("castle_f_wall_way_b",0,"castle_f_wall_way_b","bo_castle_f_wall_way_b", []),
-
+  
   ("castle_g_gate_house_door_a",0,"castle_g_gate_house_door_a","bo_castle_g_gate_house_door_a", []),
   ("castle_g_gate_house_door_b",0,"castle_g_gate_house_door_b","bo_castle_g_gate_house_door_b", []),
-
+ 
   ("banner_pole", sokf_static_movement, "banner_pole", "bo_banner_pole", []),
 
 
@@ -1601,7 +1575,7 @@ scene_props = [
   ("merchant_sign",0,"merchant_sign","bo_tavern_sign", []),
   ("tavern_sign",0,"tavern_sign","bo_tavern_sign", []),
   ("sack",0,"sack","0", []),
-
+  
   ("cupboard_a",0,"cupboard_a","bo_cupboard_a", []),
   ("box_a",0,"box_a","bo_box_a", []),
   ("bucket_a",0,"bucket_a","bo_bucket_a", []),
@@ -1646,11 +1620,11 @@ scene_props = [
   ("wooden_stand",0,"wooden_stand","bowooden_stand", []),
   ("table_small",0,"table_small","bo_table_small", []),
   ("table_small_b",0,"table_small_b","bo_table_small_b", []),
-
+  
   ("stone_stairs_a",sokf_type_ladder,"stone_stairs_a","bo_stone_stairs_a", []),
   ("stone_stairs_b",sokf_type_ladder,"stone_stairs_b","bo_stone_stairs_b", []),
   ("railing_a",0,"railing_a","bo_railing_a", []),
-
+  
 
   ("small_wall_a",0,"small_wall_a","bo_small_wall_a", []),
   ("small_wall_b",0,"small_wall_b","bo_small_wall_b", []),
@@ -1660,7 +1634,7 @@ scene_props = [
   ("small_wall_e",0,"small_wall_e","bo_small_wall_d", []),
   ("small_wall_f",0,"small_wall_f","bo_small_wall_f", []),
   ("small_wall_f2",0,"small_wall_f2","bo_small_wall_f2", []),
-
+ 
   ("passage_house_a",0,"passage_house_a","bo_passage_house_a", []),
   ("passage_house_b",0,"passage_house_b","bo_passage_house_b", []),
   ("passage_house_c",0,"passage_house_c","bo_passage_house_c", []),
@@ -1671,10 +1645,10 @@ scene_props = [
 
   ("stairs_arch_a",sokf_type_ladder,"stairs_arch_a","bo_stairs_arch_a", []),
 
-
+  
   ("windmill",0,"windmill","bo_windmill", []),
   ("windmill_fan",0,"windmill_fan","bo_windmill_fan", []),
-
+ 
 
 
   ("earth_wall_a",0,"earth_wall_a","bo_earth_wall_a", []),
@@ -1692,11 +1666,11 @@ scene_props = [
   ("earth_house_c",0,"earth_house_c","bo_earth_house_c", []),
   ("earth_house_d",0,"earth_house_d","bo_earth_house_d", []),
 
+  
 
-
-
-
-
+  
+  
+  
   ("snowy_wall_a",0,"snowy_wall_a","bo_snowy_wall_a", []),
 
   ("snowy_stand",0,"snowy_stand","bo_snowy_stand", []),
@@ -1719,49 +1693,49 @@ scene_props = [
 
   ("stone_ball",0,"stone_ball","0", []),
 
-
+ 
   ("crude_fence",0,"fence","bo_fence", []),
   ("crude_fence_small",0,"crude_fence_small","bo_crude_fence_small", []),
   ("crude_fence_small_b",0,"crude_fence_small_b","bo_crude_fence_small_b", []),
-
+  
   ("ramp_12m",0,"ramp_12m","bo_ramp_12m", []),
   ("ramp_14m",0,"ramp_14m","bo_ramp_14m", []),
 
-  ("siege_ladder_6m",sokf_type_ladder,"siege_ladder_move_6m","bo_siege_ladder_move_6m", []),
+  ("siege_ladder_6m",sokf_type_ladder,"siege_ladder_move_6m","bo_siege_ladder_move_6m", []), 
   ("siege_ladder_8m",sokf_type_ladder,"siege_ladder_move_8m","bo_siege_ladder_move_8m", []),
   ("siege_ladder_10m",sokf_type_ladder,"siege_ladder_move_10m","bo_siege_ladder_move_10m", []),
   ("siege_ladder_12m",sokf_type_ladder,"siege_ladder_12m","bo_siege_ladder_12m", []),
   ("siege_ladder_14m",sokf_type_ladder,"siege_ladder_14m","bo_siege_ladder_14m", []),
 
-  ("siege_ladder_move_6m",sokf_type_ladder|sokf_moveable|spr_use_time(2),"siege_ladder_move_6m","bo_siege_ladder_move_6m", [
+  ("siege_ladder_move_6m",sokf_type_ladder|sokf_moveable|spr_use_time(2),"siege_ladder_move_6m","bo_siege_ladder_move_6m", [    
    check_item_use_trigger,
    check_ladder_animate_trigger,
    check_ladder_animation_finish_trigger,
-  ]),
+  ]),  
 
-  ("siege_ladder_move_8m",sokf_type_ladder|sokf_moveable|spr_use_time(2),"siege_ladder_move_8m","bo_siege_ladder_move_8m", [
+  ("siege_ladder_move_8m",sokf_type_ladder|sokf_moveable|spr_use_time(2),"siege_ladder_move_8m","bo_siege_ladder_move_8m", [    
    check_item_use_trigger,
    check_ladder_animate_trigger,
    check_ladder_animation_finish_trigger,
-  ]),
+  ]),  
 
-  ("siege_ladder_move_10m",sokf_type_ladder|sokf_moveable|spr_use_time(3),"siege_ladder_move_10m","bo_siege_ladder_move_10m", [
+  ("siege_ladder_move_10m",sokf_type_ladder|sokf_moveable|spr_use_time(3),"siege_ladder_move_10m","bo_siege_ladder_move_10m", [    
    check_item_use_trigger,
    check_ladder_animate_trigger,
    check_ladder_animation_finish_trigger,
-  ]),
+  ]),  
 
-  ("siege_ladder_move_12m",sokf_type_ladder|sokf_moveable|spr_use_time(3),"siege_ladder_move_12m","bo_siege_ladder_move_12m", [
+  ("siege_ladder_move_12m",sokf_type_ladder|sokf_moveable|spr_use_time(3),"siege_ladder_move_12m","bo_siege_ladder_move_12m", [    
    check_item_use_trigger,
    check_ladder_animate_trigger,
    check_ladder_animation_finish_trigger,
-  ]),
+  ]),  
 
-  ("siege_ladder_move_14m",sokf_type_ladder|sokf_moveable|spr_use_time(4),"siege_ladder_move_14m","bo_siege_ladder_move_14m", [
+  ("siege_ladder_move_14m",sokf_type_ladder|sokf_moveable|spr_use_time(4),"siege_ladder_move_14m","bo_siege_ladder_move_14m", [    
    check_item_use_trigger,
    check_ladder_animate_trigger,
    check_ladder_animation_finish_trigger,
-  ]),
+  ]),  
 
   ("portcullis",sokf_static_movement,"portcullis_a","bo_portcullis_a", []),
   ("bed_a",0,"bed_a","bo_bed_a", []),
@@ -1776,7 +1750,7 @@ scene_props = [
   ("towngate_door_right",0,"door_g_right","bo_door_right", []),
   ("towngate_rectangle_door_left",0,"towngate_rectangle_door_left","bo_towngate_rectangle_door_left", []),
   ("towngate_rectangle_door_right",0,"towngate_rectangle_door_right","bo_towngate_rectangle_door_right", []),
-
+  
   ("door_screen",0,"door_screen","0", []),
   ("door_a",0,"door_a","bo_door_a", []),
   ("door_b",0,"door_b","bo_door_a", []),
@@ -1882,7 +1856,7 @@ scene_props = [
   ("squash_plant",0,"marrow_c","0", []),
 
   ("winch",sokf_static_movement,"winch","bo_winch", []),
-
+  
   ("winch_b",sokf_static_movement|spr_use_time(5),"winch_b","bo_winch", [
    (ti_on_scene_prop_use,
     [
@@ -1898,7 +1872,7 @@ scene_props = [
       (try_end),
     ]),
   ]),
-
+  
   ("drawbridge",0,"drawbridge","bo_drawbridge", []),
   ("gatehouse_door_left",sokf_static_movement,"gatehouse_door_left","bo_gatehouse_door_left", []),
   ("gatehouse_door_right",sokf_static_movement,"gatehouse_door_right","bo_gatehouse_door_right", []),
@@ -2049,10 +2023,10 @@ scene_props = [
         (try_begin),
           (this_or_next|multiplayer_is_server),
           (neg|game_in_multiplayer_mode),
-
+          
           (store_trigger_param_1, ":instance_no"),
           (set_fixed_point_multiplier,100),
-
+          
           (prop_instance_get_position, pos1, ":instance_no"),
           (particle_system_burst, "psys_gourd_smoke", pos1, 2),
           (particle_system_burst, "psys_gourd_piece_1", pos1, 1),
@@ -2082,7 +2056,7 @@ scene_props = [
  ("arabian_house_g",0,"arabian_house_g","bo_arabian_house_g", []),
  ("arabian_house_h",0,"arabian_house_h","bo_arabian_house_h", []),
  ("arabian_house_i",0,"arabian_house_i","bo_arabian_house_i", []),
-
+ 
  ("arabian_passage_house_a",0,"arabian_passage_house_a","bo_arabian_passage_house_a", []),
  ("arabian_wall_a",0,"arabian_wall_a","bo_arabian_wall_a", []),
  ("arabian_wall_b",0,"arabian_wall_b","bo_arabian_wall_b", []),
@@ -2118,11 +2092,11 @@ scene_props = [
 
  ("headquarters_flag_red",sokf_moveable|sokf_face_player,"mp_flag_red","0", []),
  ("headquarters_flag_blue",sokf_moveable|sokf_face_player,"mp_flag_blue","0", []),
- ("headquarters_flag_gray",sokf_moveable|sokf_face_player,"whiteflag","0", []),
+ ("headquarters_flag_gray",sokf_moveable|sokf_face_player,"whiteflag","0", []),  
 
  ("headquarters_flag_red_code_only",sokf_static_movement|sokf_face_player,"mp_flag_red","0", []),
  ("headquarters_flag_blue_code_only",sokf_static_movement|sokf_face_player,"mp_flag_blue","0", []),
- ("headquarters_flag_gray_code_only",sokf_static_movement|sokf_face_player,"whiteflag","0", []),
+ ("headquarters_flag_gray_code_only",sokf_static_movement|sokf_face_player,"whiteflag","0", []),  
  ("headquarters_pole_code_only",sokf_static_movement,"mp_flag_pole","0", [
   (ti_on_init_scene_prop,
     [
@@ -2153,24 +2127,24 @@ scene_props = [
         (play_sound, "snd_dummy_hit"),
         (particle_system_burst, "psys_dummy_smoke", pos1, 3),
         (particle_system_burst, "psys_dummy_straw", pos1, 10),
-
+        
         (try_begin),
           (this_or_next|multiplayer_is_server),
           (neg|game_in_multiplayer_mode),
-
+          
           (set_fixed_point_multiplier, 1),
           (position_get_x, ":attacker_agent_id", pos2),
           (set_fixed_point_multiplier, 100),
-
+          
           (store_trigger_param_2, ":damage"),
-
+          
           (assign, reg60, ":damage"),
           (try_begin),
             (game_in_multiplayer_mode),
-
+            
             (agent_get_player_id,":player_id",":attacker_agent_id"),
             (player_is_active,":player_id"),
-
+            
             (multiplayer_send_string_to_player, ":player_id", multiplayer_event_show_server_message, "str_delivered_damage"),
           (else_try),
             (neg|game_in_multiplayer_mode),
@@ -2189,7 +2163,7 @@ scene_props = [
   ("ship_sail_off_b",0,"ship_sail_off_b","bo_ship_sail_off", []),
   ("ship_c_sail_off",0,"ship_c_sail_off","bo_ship_c_sail_off", []),
   ("ramp_small_a",0,"ramp_small_a","bo_ramp_small_a", []),
-
+ 
   ("box_a_dynamic",sokf_moveable|sokf_dynamic_physics,"box_a","bo_box_a", []),
 
  ("desert_field",0,"desert_field","bo_desert_field", []),
@@ -2204,12 +2178,12 @@ scene_props = [
      (particle_system_add_new, "psys_sea_foam_a"),
     ]),
    ]),
-
-
+   
+ 
  ("earth_gate_house_b",0,"earth_gate_house_b","bo_earth_gate_house_b", []),
 
  ("earth_stairs_c",0,"earth_stairs_c","bo_earth_stairs_c", []),
-
+ 
 
 
 
@@ -2232,7 +2206,7 @@ scene_props = [
   ("arabian_lighthouse_a",0,"arabian_lighthouse_a","bo_arabian_lighthouse_a", []),
   ("arabian_ramp_a",0,"arabian_ramp_a","bo_arabian_ramp_a", []),
   ("arabian_ramp_b",0,"arabian_ramp_b","bo_arabian_ramp_b", []),
-
+  
   ("winery_barrel_shelf",0,"winery_barrel_shelf","bo_winery_barrel_shelf", []),
   ("winery_wall_shelf",0,"winery_wall_shelf","bo_winery_wall_shelf", []),
   ("winery_huge_barrel",0,"winery_huge_barrel","bo_winery_huge_barrel", []),
@@ -2251,55 +2225,55 @@ scene_props = [
 
 
  ("bridge_b",0,"bridge_b","bo_bridge_b", []),
-
+ 
 ("brewery_pool", 0,"brewery_pool","bo_brewery_pool", []),
 ("brewery_big_bucket", 0,"brewery_big_bucket","bo_brewery_big_bucket", []),
 ("brewery_bucket_platform_a", 0,"brewery_bucket_platform_a","bo_brewery_bucket_platform_a", []),
 ("brewery_bucket_platform_b", 0,"brewery_bucket_platform_b","bo_brewery_bucket_platform_b", []),
 
   ("rope_bridge_15m",0,"rope_bridge_15m","bo_rope_bridge_15m", []),
-
+  
   ("tree_house_guard_a",0,"tree_house_guard_a","bo_tree_house_guard_a", []),
   ("tree_house_guard_b",0,"tree_house_guard_b","bo_tree_house_guard_b", []),
   ("tree_shelter_a",0,"tree_shelter_a","bo_tree_shelter_a", []),
   ("yellow_fall_leafs_a",0,"0","0",[]),
-
+  
  ("rock_bridge_a",0,"rock_bridge_a","bo_rock_bridge_a", []),
  ("suspension_bridge_a",0,"suspension_bridge_a","bo_suspension_bridge_a", []),
  ("mine_a",0,"mine_a","bo_mine_a", []),
+  
+  
 
-
-
-
+  
 ################################
 ######## MM SCENE PROPS ########
 ################################
 
     # Weather scene props
     ("mm_weather_time", 0, "0", "0", []), # var1 = time of day 0-23; Default = 15
-    ("mm_weather_rain", 0, "0", "0", []), # var1 = rain type 1 = rain 2 = snow, var2 = rain ammount 0-25
+    ("mm_weather_rain", 0, "0", "0", []), # var1 = rain type 1 = rain 2 = snow, var2 = rain ammount 0-25  
     ("mm_weather_clouds", 0, "0", "0", []), # var1 = cloud ammount 0-100; Default = 30
-    ("mm_weather_fog", 0, "0", "0", []), # var1 = fog distance; meters x 10 where fog visibility ends
-    ("mm_weather_thunder", 0, "0", "0", []), # var1 = thunder type: 0 = none 1 = thunder only 2 = thunder & lighting,
+    ("mm_weather_fog", 0, "0", "0", []), # var1 = fog distance; meters x 10 where fog visibility ends 
+    ("mm_weather_thunder", 0, "0", "0", []), # var1 = thunder type: 0 = none 1 = thunder only 2 = thunder & lighting, 
                                              # var2 = thunder frequancy 0-100 ; the higher value the more thunder
     ("mm_weather_wind", 0, "0", "0", []), # var1 = flora_wind_strength in % 0-100; Default = 14
                                           # var2 = water_wind_strength in % 0-100; Default = 14
     # Cannon with horse spawn prop
     ("mm_spawn_with_cannon", 0, "0", "0", []), #  If this prop is in the map, the arty sarges spawn with a cannon attached.
-
+    
     # Cannon with horse spawn prop
     ("mm_spawn_restrictions", 0, "0", "0", []), #  var1 = spawn restriction;  1 = Infantry only, 2 = cav only.
-
+    
     # Snowy ground for groundhits.
     ("mm_snowy_ground", 0, "0", "0", []), #  If this prop is in the map, the particles for ground hits will be snowy style
-
+    
     # Additional Conquest points
     ("mm_additional_conquest_points", 0, "0", "0", []), #  var1 = team_no
                                                         #  var2 = amount of additional points
     # Disable explosives
     ("mm_disable_explosives", 0, "0", "0", []), #  If this prop is in the map, the sappers cannot place explosives.
-
-
+    
+    
     # first some trees :3
     ("mm_tree_aspen1" ,sokf_handle_as_flora,"mm_aspen1" ,"bo_mm_aspen1" , []),
     ("mm_tree_aspen2" ,sokf_handle_as_flora,"mm_aspen2" ,"bo_mm_aspen1" , []),
@@ -2316,23 +2290,23 @@ scene_props = [
     ("mm_tree_aspen13" ,sokf_handle_as_flora,"mm_aspen13" ,"bo_mm_aspen1" , []),
     ("mm_tree_aspen14" ,sokf_handle_as_flora,"mm_aspen14" ,"bo_mm_aspen1" , []),
     ("mm_tree_aspen15" ,sokf_handle_as_flora,"mm_aspen15" ,"bo_mm_aspen1" , []),
-
-    ("mm_tree_pine1" ,sokf_handle_as_flora,"mm_pine1" ,"bo_mm_pine1" , []),
-    ("mm_tree_pine2" ,sokf_handle_as_flora,"mm_pine2" ,"bo_mm_pine1" , []),
-    ("mm_tree_pine3" ,sokf_handle_as_flora,"mm_pine3" ,"bo_mm_pine1" , []),
-    ("mm_tree_pine4" ,sokf_handle_as_flora,"mm_pine4" ,"bo_mm_pine1" , []),
-    ("mm_tree_pine5" ,sokf_handle_as_flora,"mm_pine5" ,"bo_mm_pine1" , []),
-    ("mm_tree_pine6" ,sokf_handle_as_flora,"mm_pine6" ,"bo_mm_pine1" , []),
-    ("mm_tree_pine7" ,sokf_handle_as_flora,"mm_pine7" ,"bo_mm_pine1" , []),
-
-    ("mm_tree_pine_snowy1" ,sokf_handle_as_flora,"mm_pine1s" ,"bo_mm_pine1s" , []),
-    ("mm_tree_pine_snowy2" ,sokf_handle_as_flora,"mm_pine2s" ,"bo_mm_pine2s" , []),
-    ("mm_tree_pine_snowy3" ,sokf_handle_as_flora,"mm_pine3s" ,"bo_mm_pine3s" , []),
-    ("mm_tree_pine_snowy4" ,sokf_handle_as_flora,"mm_pine4s" ,"bo_mm_pine3s" , []),
-    ("mm_tree_pine_snowy5" ,sokf_handle_as_flora,"mm_pine5s" ,"bo_mm_pine3s" , []),
-    ("mm_tree_pine_snowy6" ,sokf_handle_as_flora,"mm_pine6s" ,"bo_mm_pine6s" , []),
-    ("mm_tree_pine_snowy7" ,sokf_handle_as_flora,"mm_pine7s" ,"bo_mm_pine7s" , []),
-
+    
+    ("mm_tree_pine1" ,sokf_handle_as_flora,"mm_pine1" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine2" ,sokf_handle_as_flora,"mm_pine2" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine3" ,sokf_handle_as_flora,"mm_pine3" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine4" ,sokf_handle_as_flora,"mm_pine4" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine5" ,sokf_handle_as_flora,"mm_pine5" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine6" ,sokf_handle_as_flora,"mm_pine6" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine7" ,sokf_handle_as_flora,"mm_pine7" ,"bo_tree_snowy_a" , []),
+    
+    ("mm_tree_pine_snowy1" ,sokf_handle_as_flora,"mm_pine1s" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine_snowy2" ,sokf_handle_as_flora,"mm_pine2s" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine_snowy3" ,sokf_handle_as_flora,"mm_pine3s" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine_snowy4" ,sokf_handle_as_flora,"mm_pine4s" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine_snowy5" ,sokf_handle_as_flora,"mm_pine5s" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine_snowy6" ,sokf_handle_as_flora,"mm_pine6s" ,"bo_tree_snowy_a" , []),
+    ("mm_tree_pine_snowy7" ,sokf_handle_as_flora,"mm_pine7s" ,"bo_tree_snowy_a" , []),
+    
     ("mm_tree_northern1" ,sokf_handle_as_flora,"mm_northern_tree1" ,"bo_mm_winter_tree12" , []),
     ("mm_tree_northern2" ,sokf_handle_as_flora,"mm_northern_tree2" ,"bo_mm_winter_tree13" , []),
     ("mm_tree_northern3" ,sokf_handle_as_flora,"mm_northern_tree3" ,"bo_mm_winter_tree14" , []),
@@ -2340,13 +2314,13 @@ scene_props = [
     ("mm_tree_northern5" ,sokf_handle_as_flora,"mm_pine_3" ,"bo_mm_pine_3" , []),
     ("mm_tree_northern6" ,sokf_handle_as_flora,"mm_pine_4" ,"bo_mm_pine_4" , []),
     ("mm_tree_northern7" ,sokf_handle_as_flora,"mm_pine_5" ,"bo_mm_pine_5" , []),
-
+    
     ("mm_tree_autumn1" ,sokf_handle_as_flora,"mm_autumn_tree" ,"bo_mm_winter_tree3" , []),
     ("mm_tree_autumn2" ,sokf_handle_as_flora,"mm_autumn_tree1" ,"bo_mm_autumn_tree1" , []),
     ("mm_tree_autumn3" ,sokf_handle_as_flora,"mm_autumn_tree2" ,"bo_mm_winter_tree6" , []),
     ("mm_tree_autumn4" ,sokf_handle_as_flora,"mm_autumn_tree3" ,"bo_mm_winter_tree6" , []),
     ("mm_tree_autumn5" ,sokf_handle_as_flora,"mm_autumn_tree4" ,"bo_mm_winter_tree6" , []),
-
+    
     ("mm_tree_winter1" ,sokf_handle_as_flora,"mm_winter_tree" ,"bo_tree_plane_b" , []),
     ("mm_tree_winter2" ,sokf_handle_as_flora,"mm_winter_tree1" ,"bo_mm_winter_tree1" , []),
     ("mm_tree_winter3" ,sokf_handle_as_flora,"mm_winter_tree2" ,"bo_mm_winter_tree2" , []),
@@ -2363,12 +2337,12 @@ scene_props = [
     ("mm_tree_winter14" ,sokf_handle_as_flora,"mm_winter_tree13" ,"bo_mm_winter_tree13" , []),
     ("mm_tree_winter15" ,sokf_handle_as_flora,"mm_winter_tree14" ,"bo_mm_winter_tree14" , []),
     ("mm_tree_winter16" ,sokf_handle_as_flora,"mm_winter_tree15" ,"bo_mm_winter_tree15" , []),
-
+    
     ("mm_tree_big1" ,sokf_handle_as_flora,"big_tree_mm" ,"bo_mm_winter_tree6" , []),
     ("mm_tree_big2" ,sokf_handle_as_flora,"big_tree_mm1" ,"bo_mm_winter_tree6" , []),
     ("mm_tree_big3" ,sokf_handle_as_flora,"big_tree_mm2" ,"bo_mm_winter_tree6" , []),
     ("mm_tree_big4" ,sokf_handle_as_flora,"big_tree_mm3" ,"bo_mm_winter_tree6" , []),
-
+    
     ("mm_tree_vegetation1" ,sokf_handle_as_flora,"mm_vegetation_tree1" ,"bo_mm_vegetation_tree1" , []),
     ("mm_tree_vegetation2" ,sokf_handle_as_flora,"mm_vegetation_tree2" ,"bo_mm_vegetation_tree2" , []),
     ("mm_tree_vegetation3" ,sokf_handle_as_flora,"mm_vegetation_tree3" ,"bo_mm_vegetation_tree3" , []),
@@ -2383,7 +2357,7 @@ scene_props = [
     ("mm_tree_vegetation12" ,sokf_handle_as_flora,"mm_vegetation_tree12" ,"bo_mm_vegetation_tree12" , []),
     ("mm_tree_vegetation14" ,sokf_handle_as_flora,"mm_vegetation_tree14" ,"bo_mm_vegetation_tree14" , []),
     ("mm_tree_vegetation15" ,sokf_handle_as_flora,"mm_vegetation_tree15" ,"bo_mm_vegetation_tree15" , []),
-
+    
     ("mm_tree_vegetation2_1" ,sokf_handle_as_flora,"mm_vegetation_tree21" ,"bo_mm_vegetation_tree1" , []),
     ("mm_tree_vegetation2_2" ,sokf_handle_as_flora,"mm_vegetation_tree22" ,"bo_mm_vegetation_tree2" , []),
     ("mm_tree_vegetation2_3" ,sokf_handle_as_flora,"mm_vegetation_tree23" ,"bo_mm_vegetation_tree3" , []),
@@ -2398,7 +2372,7 @@ scene_props = [
     ("mm_tree_vegetation2_12" ,sokf_handle_as_flora,"mm_vegetation_tree212" ,"bo_mm_vegetation_tree12" , []),
     ("mm_tree_vegetation2_14" ,sokf_handle_as_flora,"mm_vegetation_tree214" ,"bo_mm_vegetation_tree14" , []),
     ("mm_tree_vegetation2_15" ,sokf_handle_as_flora,"mm_vegetation_tree215" ,"bo_mm_vegetation_tree15" , []),
-
+    
     ("mm_tree_vegetation3_1" ,sokf_handle_as_flora,"mm_vegetation_tree31" ,"bo_mm_vegetation_tree1" , []),
     ("mm_tree_vegetation3_2" ,sokf_handle_as_flora,"mm_vegetation_tree32" ,"bo_mm_vegetation_tree2" , []),
     ("mm_tree_vegetation3_3" ,sokf_handle_as_flora,"mm_vegetation_tree33" ,"bo_mm_vegetation_tree3" , []),
@@ -2414,7 +2388,7 @@ scene_props = [
     #("mm_tree_vegetation3_13" ,sokf_handle_as_flora,"mm_vegetation_tree313" ,"bo_mm_vegetation_tree13" , []),
     ("mm_tree_vegetation3_14" ,sokf_handle_as_flora,"mm_vegetation_tree314" ,"bo_mm_vegetation_tree14" , []),
     ("mm_tree_vegetation3_15" ,sokf_handle_as_flora,"mm_vegetation_tree315" ,"bo_mm_vegetation_tree15" , []),
-
+    
     ("mm_tree_vegetation7_1" ,sokf_handle_as_flora,"mm_vegetation_tree71" ,"bo_mm_vegetation_tree1" , []),
     ("mm_tree_vegetation7_2" ,sokf_handle_as_flora,"mm_vegetation_tree72" ,"bo_mm_vegetation_tree2" , []),
     ("mm_tree_vegetation7_3" ,sokf_handle_as_flora,"mm_vegetation_tree73" ,"bo_mm_vegetation_tree3" , []),
@@ -2429,7 +2403,7 @@ scene_props = [
     ("mm_tree_vegetation7_12" ,sokf_handle_as_flora,"mm_vegetation_tree712" ,"bo_mm_vegetation_tree12" , []),
     ("mm_tree_vegetation7_14" ,sokf_handle_as_flora,"mm_vegetation_tree714" ,"bo_mm_vegetation_tree14" , []),
     ("mm_tree_vegetation7_15" ,sokf_handle_as_flora,"mm_vegetation_tree715" ,"bo_mm_vegetation_tree15" , []),
-
+    
     ("mm_tree_vegetation8_1" ,sokf_handle_as_flora,"mm_vegetation_tree81" ,"bo_mm_vegetation_tree1" , []),
     ("mm_tree_vegetation8_2" ,sokf_handle_as_flora,"mm_vegetation_tree82" ,"bo_mm_vegetation_tree2" , []),
     ("mm_tree_vegetation8_3" ,sokf_handle_as_flora,"mm_vegetation_tree83" ,"bo_mm_vegetation_tree3" , []),
@@ -2444,7 +2418,7 @@ scene_props = [
     ("mm_tree_vegetation8_12" ,sokf_handle_as_flora,"mm_vegetation_tree812" ,"bo_mm_vegetation_tree12" , []),
     ("mm_tree_vegetation8_14" ,sokf_handle_as_flora,"mm_vegetation_tree814" ,"bo_mm_vegetation_tree14" , []),
     ("mm_tree_vegetation8_15" ,sokf_handle_as_flora,"mm_vegetation_tree815" ,"bo_mm_vegetation_tree15" , []),
-
+    
     ("mm_tree_vegetation9_1" ,sokf_handle_as_flora,"mm_vegetation_tree91" ,"bo_mm_vegetation_tree1" , []),
     ("mm_tree_vegetation9_2" ,sokf_handle_as_flora,"mm_vegetation_tree92" ,"bo_mm_vegetation_tree2" , []),
     ("mm_tree_vegetation9_3" ,sokf_handle_as_flora,"mm_vegetation_tree93" ,"bo_mm_vegetation_tree3" , []),
@@ -2459,12 +2433,12 @@ scene_props = [
     ("mm_tree_vegetation9_12" ,sokf_handle_as_flora,"mm_vegetation_tree912" ,"bo_mm_vegetation_tree12" , []),
     ("mm_tree_vegetation9_14" ,sokf_handle_as_flora,"mm_vegetation_tree914" ,"bo_mm_vegetation_tree14" , []),
     ("mm_tree_vegetation9_15" ,sokf_handle_as_flora,"mm_vegetation_tree915" ,"bo_mm_vegetation_tree15" , []),
-
+    
     ("mm_tree_vegetation10_1" ,sokf_handle_as_flora,"mm_vegetation_tree101" ,"bo_mm_vegetation_tree1" , []),
     ("mm_tree_vegetation10_2" ,sokf_handle_as_flora,"mm_vegetation_tree102" ,"bo_mm_vegetation_tree2" , []),
     ("mm_tree_vegetation10_3" ,sokf_handle_as_flora,"mm_vegetation_tree103" ,"bo_mm_vegetation_tree3" , []),
     ("mm_tree_vegetation10_4" ,sokf_handle_as_flora,"mm_vegetation_tree104" ,"bo_mm_vegetation_tree4" , []),
-    ("mm_tree_vegetation10_5" ,sokf_handle_as_flora,"mm_vegetation_tree105" ,"bo_mm_vegetation_tree105" , []),
+    ("mm_tree_vegetation10_5" ,sokf_handle_as_flora,"mm_vegetation_tree105" ,"bo_mm_vegetation_tree5" , []),
     ("mm_tree_vegetation10_6" ,sokf_handle_as_flora,"mm_vegetation_tree106" ,"bo_mm_vegetation_tree3" , []),
     ("mm_tree_vegetation10_7" ,sokf_handle_as_flora,"mm_vegetation_tree107" ,"bo_mm_vegetation_tree7" , []),
     ("mm_tree_vegetation10_8" ,sokf_handle_as_flora,"mm_vegetation_tree108" ,"bo_mm_vegetation_tree8" , []),
@@ -2474,12 +2448,12 @@ scene_props = [
     ("mm_tree_vegetation10_12" ,sokf_handle_as_flora,"mm_vegetation_tree1012" ,"bo_mm_vegetation_tree12" , []),
     ("mm_tree_vegetation10_14" ,sokf_handle_as_flora,"mm_vegetation_tree1014" ,"bo_mm_vegetation_tree14" , []),
     ("mm_tree_vegetation10_15" ,sokf_handle_as_flora,"mm_vegetation_tree1015" ,"bo_mm_vegetation_tree15" , []),
-
+    
     ("mm_tree_vegetation11_1" ,sokf_handle_as_flora,"mm_vegetation_tree111" ,"bo_mm_vegetation_tree1" , []),
     ("mm_tree_vegetation11_2" ,sokf_handle_as_flora,"mm_vegetation_tree112" ,"bo_mm_vegetation_tree2" , []),
     ("mm_tree_vegetation11_3" ,sokf_handle_as_flora,"mm_vegetation_tree113" ,"bo_mm_vegetation_tree3" , []),
     ("mm_tree_vegetation11_4" ,sokf_handle_as_flora,"mm_vegetation_tree114" ,"bo_mm_vegetation_tree4" , []),
-    ("mm_tree_vegetation11_5" ,sokf_handle_as_flora,"mm_vegetation_tree115" ,"bo_mm_vegetation_tree105" , []),
+    ("mm_tree_vegetation11_5" ,sokf_handle_as_flora,"mm_vegetation_tree115" ,"bo_mm_vegetation_tree5" , []),
     ("mm_tree_vegetation11_6" ,sokf_handle_as_flora,"mm_vegetation_tree116" ,"bo_mm_vegetation_tree3" , []),
     ("mm_tree_vegetation11_7" ,sokf_handle_as_flora,"mm_vegetation_tree117" ,"bo_mm_vegetation_tree7" , []),
     ("mm_tree_vegetation11_8" ,sokf_handle_as_flora,"mm_vegetation_tree118" ,"bo_mm_vegetation_tree8" , []),
@@ -2489,17 +2463,17 @@ scene_props = [
     ("mm_tree_vegetation11_12" ,sokf_handle_as_flora,"mm_vegetation_tree1112" ,"bo_mm_vegetation_tree12" , []),
     ("mm_tree_vegetation11_14" ,sokf_handle_as_flora,"mm_vegetation_tree1114" ,"bo_mm_vegetation_tree14" , []),
     ("mm_tree_vegetation11_15" ,sokf_handle_as_flora,"mm_vegetation_tree1115" ,"bo_mm_vegetation_tree15" , []),
-
+    
     ("mm_trees_end", 0,"0" ,"0" , []),
-
+    
 
     #insects
 
 
 #furnitre
-
+ 
    #hugo
-
+		
    ("mm_hugo1" ,0,"hugo1" ,"bo_hugo1" , []),
    ("mm_hugo11" ,0,"hugo11" ,"bo_hugo11" , []),
    ("mm_hugo2" ,0,"hugo2" ,"bo_hugo2" , []),
@@ -2516,12 +2490,12 @@ scene_props = [
    ("mm_hugo14" ,0,"hugo14" ,"bo_hugo14" , []),
 
    #camaretthing
-
+   
     ("mm_camaretsurmer" ,0,"camaretsurmer" ,"bo_camaretsurmer" , []),
 
 # furniture
 
-
+		
    ("mm_cupboardd1" ,0,"mm_cupboard1" ,"bo_mm_cupboard2" , []),
  ("mm_cupboardd2" ,0,"mm_cupboard2" ,"bo_mm_cupboard2" , []),
  ("mm_cupboardd3" ,0,"mm_cupboard3" ,"bo_mm_cupboard3" , []),
@@ -2557,12 +2531,12 @@ scene_props = [
 
 
 #flora
-
+ 
  ("flora_bush_new_3" ,sokf_handle_as_flora,"bush_new_b" ,"0" , []),
 
  ("flora_flowers1a" ,sokf_handle_as_flora,"grass_bush_amm" ,"0" , []),
  ("flora_flowers1b" ,sokf_handle_as_flora,"grass_bush_bmm" ,"0" , []),
-
+ 
  ("flora_flowersa" ,sokf_handle_as_flora,"grass_bush_cmm" ,"0" , []),
  ("flora_flowersb" ,sokf_handle_as_flora,"grass_bush_c2mm" ,"0" , []),
  ("flora_flowersc" ,sokf_handle_as_flora,"grass_bush_c3mm" ,"0" , []),
@@ -2611,7 +2585,7 @@ scene_props = [
  ("flora_old_bushe" ,sokf_handle_as_flora,"mm_giant_bush_new5" ,"0" , []),
  ("flora_old_bushf" ,sokf_handle_as_flora,"mm_giant_bush_new6" ,"0" , []),
  ("flora_old_bushg" ,sokf_handle_as_flora,"mm_giant_bush_new7" ,"0" , []),
-
+ 
  ("flora_old_bush1a" ,sokf_handle_as_flora,"mm_old_bush" ,"0" , []),
  ("flora_old_bush1b" ,sokf_handle_as_flora,"mm_old_bush2" ,"0" , []),
  ("flora_old_bush1c" ,sokf_handle_as_flora,"mm_old_bush3" ,"0" , []),
@@ -2626,7 +2600,7 @@ scene_props = [
  ("flora_flower_bushd" ,sokf_handle_as_flora,"bush_flower4" ,"0" , []),
  ("flora_flower_bushe" ,sokf_handle_as_flora,"bush_flower5" ,"0" , []),
  ("flora_flower_bushf" ,sokf_handle_as_flora,"bush_flower6" ,"0" , []),
- ("flora_flower_bushg" ,sokf_handle_as_flora,"bush_flower7" ,"0" , []),
+ ("flora_flower_bushg" ,sokf_handle_as_flora,"bush_flower7" ,"0" , []),  
  ("flora_flower_bushh" ,sokf_handle_as_flora,"bush_flower8" ,"0" , []),
  ("flora_flower_bushi" ,sokf_handle_as_flora,"bush_flower9" ,"0" , []),
  ("flora_flower_bushk" ,sokf_handle_as_flora,"bush_flower11" ,"0" , []),
@@ -2638,7 +2612,7 @@ scene_props = [
  ("flora_flower_bushq" ,sokf_handle_as_flora,"bush_flower17" ,"0" , []),
  ("flora_flower_bushr" ,sokf_handle_as_flora,"bush_flower18" ,"0" , []),
  ("flora_flower_bushs" ,sokf_handle_as_flora,"bush_flower19" ,"0" , []),
- ("flora_flower_busht" ,sokf_handle_as_flora,"bush_flower20" ,"0" , []),
+ ("flora_flower_busht" ,sokf_handle_as_flora,"bush_flower20" ,"0" , []),  
 
  ("flora_bush_green_newa" ,sokf_handle_as_flora,"bush_new_green1" ,"0" , []),
  ("flora_bush_green_newb" ,sokf_handle_as_flora,"bush_new_green2" ,"0" , []),
@@ -2654,20 +2628,20 @@ scene_props = [
  ("flora_bush_winterd" ,sokf_handle_as_flora,"mm_bush_winter4" ,"0" , []),
  ("flora_bush_wintere" ,sokf_handle_as_flora,"mm_bush_winter5" ,"0" , []),
  ("flora_bush_winterf" ,sokf_handle_as_flora,"mm_bush_winter6" ,"0" , []),
- ("flora_bush_winterg" ,sokf_handle_as_flora,"mm_bush_winter7" ,"0" , []),
+ ("flora_bush_winterg" ,sokf_handle_as_flora,"mm_bush_winter7" ,"0" , []),  
  ("flora_bush_winterh" ,sokf_handle_as_flora,"mm_bush_winter8" ,"0" , []),
  ("flora_bush_winteri" ,sokf_handle_as_flora,"mm_bush_winter9" ,"0" , []),
- ("flora_bush_winterj" ,sokf_handle_as_flora,"mm_bush_winter10" ,"0" , []),
-
+ ("flora_bush_winterj" ,sokf_handle_as_flora,"mm_bush_winter10" ,"0" , []),  
+  
  ("flora_bush_winter2a" ,sokf_handle_as_flora,"mm_bush_winter14" ,"0" , []),
  ("flora_bush_winter2b" ,sokf_handle_as_flora,"mm_bush_winter15" ,"0" , []),
  ("flora_bush_winter2c" ,sokf_handle_as_flora,"mm_bush_winter16" ,"0" , []),
  ("flora_bush_winter2d" ,sokf_handle_as_flora,"mm_bush_winter17" ,"0" , []),
 
- ("flora_roses" ,sokf_handle_as_flora,"roses" ,"0" , []),
+ ("flora_roses" ,sokf_handle_as_flora,"roses" ,"0" , []),  
 
- ("flora_buddy_planta" ,sokf_handle_as_flora,"buddy_plant" ,"0" , []),
- ("flora_buddy_plantb" ,sokf_handle_as_flora,"buddy_plant_b" ,"0" , []),
+ ("flora_buddy_planta" ,sokf_handle_as_flora,"buddy_plant" ,"0" , []),  
+ ("flora_buddy_plantb" ,sokf_handle_as_flora,"buddy_plant_b" ,"0" , []),  
 
 
 ("aagreenscreen" ,0,"greenscreen" ,"0" , []),
@@ -2699,7 +2673,7 @@ scene_props = [
    (ti_on_scene_prop_init,
     [
       (store_trigger_param_1,":instance_id"),
-
+    
       (store_random_in_range,":cur_time",1,3), #0-2 sec until first burst
       (scene_prop_set_slot, ":instance_id", scene_prop_slot_time,":cur_time"), #Initial time until first particle burst in sec
                                                                                #delete the random and change cur_time to a value
@@ -2713,7 +2687,7 @@ scene_props = [
    (ti_on_scene_prop_init,
     [
       (store_trigger_param_1,":instance_id"),
-
+    
       (store_random_in_range,":cur_time",1,3), #0-2 sec until first burst
       (scene_prop_set_slot, ":instance_id", scene_prop_slot_time,":cur_time"), #Initial time until first particle burst in sec
                                                                                #delete the random and change cur_time to a value
@@ -2727,7 +2701,7 @@ scene_props = [
    (ti_on_scene_prop_init,
     [
       (store_trigger_param_1,":instance_id"),
-
+    
       (store_random_in_range,":cur_time",1,3), #0-2 sec until first burst
       (scene_prop_set_slot, ":instance_id", scene_prop_slot_time,":cur_time"), #Initial time until first particle burst in sec
                                                                                #delete the random and change cur_time to a value
@@ -2741,7 +2715,7 @@ scene_props = [
    (ti_on_scene_prop_init,
     [
       (store_trigger_param_1,":instance_id"),
-
+    
       (store_random_in_range,":cur_time",1,3), #0-2 sec until first burst
       (scene_prop_set_slot, ":instance_id", scene_prop_slot_time,":cur_time"), #Initial time until first particle burst in sec
                                                                                #delete the random and change cur_time to a value
@@ -2757,27 +2731,27 @@ scene_props = [
     ("mm_la_haye4" ,0,"la_haye_saint3" ,"bo_la_haye_saint3" , []),
     ("mm_la_haye5" ,0,"la_haye_saint4" ,"bo_la_haye_saint4" , []),
     ("mm_la_haye6" ,0,"la_haye_saint5" ,"bo_la_haye_saint5" , []),
-    ("mm_la_haye7" ,0,"la_haye_saint6" ,"bo_la_haye_saint6" , []),
+    ("mm_la_haye7" ,0,"la_haye_saint6" ,"bo_la_haye_saint6" , []),	
 
 
     ("mm_ammunition_depot" ,0,"ammunition_depot" ,"ammunition_depot_collision" , []),
     ("mm_gabion" ,0,"gabion" ,"gabion_collision" , []),
     ("mm_gunnest" ,0,"gunnest" ,"gunnest_collision" , []),
-
+    
     ("mm_gabiondeploy" ,0,"gabiondeploy" ,"bo_gabiondeploy" , []),
-
+        
     #mill
 
     ("mm_mill2" ,0,"mmmill2" ,"bo_sp_poor_village_houses9" , []),
-
+    
     # New house
     ("mm_house_ornament1" ,0,"1owall" ,"0" , []),
     ("mm_house_ornament2" ,0,"2owall" ,"0" , []),
-
+    
     ("mm_house_stair1" ,0,"stair" ,"bo_stair" , []),
     ("mm_house_stair2" ,0,"stair2" ,"bo_stair2" , []),
     ("mm_house_stair3" ,0,"stair3" ,"bo_stair3" , []),
-
+    
     ("mm_house_basic1" ,0,"formen" ,"bo_formen" , []),
     #("mm_house_basic2" ,0,"formen2" ,"bo_formen2" , []),
     ("mm_house_basic3" ,0,"formen3" ,"bo_formen3" , []),
@@ -2793,7 +2767,7 @@ scene_props = [
     ("mm_house_basic13" ,0,"formen13" ,"bo_formen13" , []),
     ("mm_house_basic14" ,0,"formen14" ,"bo_formen14" , []),
 
-
+     
     ("mm_1housebuild" ,0,"1housebuild" ,"bo_1housebuild" , []),
     ("mm_2housebuild" ,0,"2housebuild" ,"bo_2housebuild" , []),
     ("mm_3housebuild" ,0,"3housebuild" ,"bo_3housebuild" , []),
@@ -2818,7 +2792,7 @@ scene_props = [
     ("mm_19housebuild" ,0,"19housebuild" ,"bo_19housebuild" , []),
     ("mm_20housebuild" ,0,"20housebuild" ,"bo_20housebuild" , []),
 
-
+    
     ("new_mm_1housebuild" ,0,"new_1housebuild" ,"bo_1housebuild" , []),
     ("new_mm_2housebuild" ,0,"new_2housebuild" ,"bo_2housebuild" , []),
     ("new_mm_3housebuild" ,0,"new_3housebuild" ,"bo_3housebuild" , []),
@@ -2858,7 +2832,7 @@ scene_props = [
         (prop_instance_get_position,pos3,":rope_instance"),
         (scene_prop_get_num_instances,":num_bells","spr_mm_build_church_bellmov"),
         (gt,":num_bells",0),
-
+        
         (assign,":max_dist",999999),
         (try_for_range,":bell_no",0,":num_bells"),
           (scene_prop_get_instance,":bell_instance","spr_mm_build_church_bellmov",":bell_no"),
@@ -2895,7 +2869,7 @@ scene_props = [
    ("mm_ice3" ,0,"ice3" ,"bo_ice3" , []),
    ("mm_ice4" ,0,"ice4" ,"bo_ice4" , []),
 
-
+    
     # Windows.
     ("mm_window1_poor",sokf_static_movement|sokf_destructible,"window1_poor","bo_window1", [check_mm_on_destroy_window_trigger,(ti_on_scene_prop_use,[]),]),
     ("mm_window2_poor",sokf_static_movement|sokf_destructible,"window2_poor","bo_window2", [check_mm_on_destroy_window_trigger,(ti_on_scene_prop_use,[]),]),
@@ -2903,25 +2877,25 @@ scene_props = [
     ("mm_window2",sokf_static_movement|sokf_destructible,"window2","bo_window2", [check_mm_on_destroy_window_trigger,(ti_on_scene_prop_use,[]),]),
 
     ("mm_window1d_poor",sokf_static_movement,"window1d_poor","0", []),
-    ("mm_window2d_poor",sokf_static_movement,"window2d_poor","0", []),
+    ("mm_window2d_poor",sokf_static_movement,"window2d_poor","0", []),   
     ("mm_window1d",sokf_static_movement,"window1d","0", []),
     ("mm_window2d",sokf_static_movement,"window2d","0", []),
-
+    
     ("mm_window3_poor",sokf_static_movement|sokf_destructible,"window_old_walls1_poor","bo_window_old_walls", [check_mm_on_destroy_window_trigger,(ti_on_scene_prop_use,[]),]),
     ("mm_window4_poor",sokf_static_movement|sokf_destructible,"window_repos1_poor","bo_window_repos", [check_mm_on_destroy_window_trigger,(ti_on_scene_prop_use,[]),]),
     ("mm_window3",sokf_static_movement|sokf_destructible,"window_old_walls1","bo_window_old_walls", [check_mm_on_destroy_window_trigger,(ti_on_scene_prop_use,[]),]),
     ("mm_window4",sokf_static_movement|sokf_destructible,"window_repos1","bo_window_repos", [check_mm_on_destroy_window_trigger,(ti_on_scene_prop_use,[]),]),
-
+    
     ("mm_window3d_poor",sokf_static_movement,"window_old_walls1d_poor","0", []),
-    ("mm_window4d_poor",sokf_static_movement,"window_repos1d_poor","0", []),
+    ("mm_window4d_poor",sokf_static_movement,"window_repos1d_poor","0", []),   
     ("mm_window3d",sokf_static_movement,"window_old_walls1d","0", []),
     ("mm_window4d",sokf_static_movement,"window_repos1d","0", []),
-
+    
     ("mm_windows_end",0,"0","0", []),
 
-
+    
     # Destroyable props begin
-
+    
     # New walls
     ("mm_house_wall_1" ,sokf_static_movement,"1wall" ,"bo_1wall" , []),
     ("mm_house_wall_1d" ,sokf_static_movement,"1dwall" ,"bo_1dwall" , []),
@@ -2951,33 +2925,33 @@ scene_props = [
     ("mm_house_wall_61d" ,sokf_static_movement,"61dwall" ,"bo_61dwall" , []),
     ("mm_house_wall_71" ,sokf_static_movement,"71wall" ,"bo_71wall" , []),
     ("mm_house_wall_71d" ,sokf_static_movement,"71dwall" ,"bo_71dwall" , []),
-
+    
     ("mm_wall1", sokf_static_movement, "wall1", "bo_desertWall1" , []),
 	  ("mm_wall1d", sokf_static_movement, "wall1d", "bo_desertWall1d" , []),
 	  ("mm_wall1dd", sokf_static_movement, "wall1dd", "bo_desertWall1dd" , []),
-
+    
     ("mm_walldesert1", sokf_static_movement, "desertWall1", "bo_desertWall1" , []),
     ("mm_walldesert1d", sokf_static_movement, "desertWall1d", "bo_desertWall1d" , []),
     ("mm_walldesert1dd", sokf_static_movement, "desertWall1dd", "bo_desertWall1dd" , []),
-
+    
     ("mm_wallwood1", sokf_static_movement, "woodWall1", "bo_woodWall1" , []),
     ("mm_wallwood1d", sokf_static_movement, "woodWall1d", "bo_woodWall1d" , []),
     ("mm_wallwood1dd", sokf_static_movement, "woodWall1dd", "bo_woodWall1dd" , []),
-
+	
     ("mm_wall3", sokf_static_movement, "wall3", "wall3_collision" , []),
     ("mm_wall4", sokf_static_movement, "wall4", "wall4_collision" , []),
     ("mm_wall5", sokf_static_movement, "wall5", "wall5_collision" , []),
-
+  
     ("mm_stockade" ,sokf_static_movement,"stockade" ,"stockade_collision" , []),
     ("mm_stockade_cannon" ,sokf_static_movement,"stockade_cannon" ,"stockade_cannon_collision" , []),
-
+    
     ("mm_palisade", sokf_static_movement, "mmpalisade", "bo_mmpalisade" , []),
     ("mm_palisaded", sokf_static_movement, "mmpalisaded", "bo_mmpalisaded" , []),
     ("mm_sp_poor_bridge1", sokf_static_movement|sokf_dont_move_agent_over, "sp_poor_village_bridge1", "bo_sp_poor_village_bridge1" , []),
     ("mm_pontoon_bridge1", sokf_static_movement|sokf_dont_move_agent_over, "pontoon", "bo_pontoon" , []),
     ("mm_pontoon_bridge2", sokf_static_movement|sokf_dont_move_agent_over, "pontoon2", "bo_pontoon" , []),
     ("mm_earthwork1", sokf_static_movement, "earthwork1", "bo_earthwork1" , []),
-
+    
     ("fortnew", sokf_static_movement|sokf_dont_move_agent_over, "fortnew", "bo_fortnew" , []),
     ("fortnew1", sokf_static_movement|sokf_dont_move_agent_over, "fortnew1", "bo_fortnew" , []),
     ("fortnew2", sokf_static_movement|sokf_dont_move_agent_over, "fortnew2", "bo_fortnew" , []),
@@ -3020,7 +2994,7 @@ scene_props = [
     ("fortnew_38", sokf_static_movement|sokf_dont_move_agent_over, "fortnew_38", "bo_fortnew_38" , []),
 
     ("fortnew_4", sokf_static_movement|sokf_dont_move_agent_over, "fortnew_4", "bo_fortnew_4" , []),
-
+    
     ("mm_new_wall_1_1" ,sokf_static_movement,"newall1" ,"bo_newall1" , []),
     ("mm_new_wall_1_1d" ,sokf_static_movement,"newall1d" ,"bo_newall1" , []),
     ("mm_new_wall_1_2" ,sokf_static_movement,"newall2" ,"bo_newall1" , []),
@@ -3043,7 +3017,7 @@ scene_props = [
     ("mm_new_wall_1_10d" ,sokf_static_movement,"newall10d" ,"bo_newall10" , []),
     ("mm_new_wall_1_11" ,sokf_static_movement,"newall11" ,"bo_newall7" , []),
     ("mm_new_wall_1_11d" ,sokf_static_movement,"newall11d" ,"bo_newall7" , []),
-
+    
     ("mm_new_wall_2_1" ,sokf_static_movement,"ne1wall1" ,"bo_newall1" , []),
     ("mm_new_wall_2_1d" ,sokf_static_movement,"ne1wall1d" ,"bo_newall1" , []),
     ("mm_new_wall_2_2" ,sokf_static_movement,"ne1wall2" ,"bo_newall1" , []),
@@ -3066,7 +3040,7 @@ scene_props = [
     ("mm_new_wall_2_10d" ,sokf_static_movement,"ne1wall10d" ,"bo_newall10" , []),
     ("mm_new_wall_2_11" ,sokf_static_movement,"ne1wall11" ,"bo_newall7" , []),
     ("mm_new_wall_2_11d" ,sokf_static_movement,"ne1wall11d" ,"bo_newall7" , []),
-
+    
     ("mm_new_wall_3_1" ,sokf_static_movement,"ne2wall1" ,"bo_newall1" , []),
     ("mm_new_wall_3_1d" ,sokf_static_movement,"ne2wall1d" ,"bo_newall1" , []),
     ("mm_new_wall_3_2" ,sokf_static_movement,"ne2wall2" ,"bo_newall1" , []),
@@ -3089,7 +3063,7 @@ scene_props = [
     ("mm_new_wall_3_10d" ,sokf_static_movement,"ne2wall10d" ,"bo_newall10" , []),
     ("mm_new_wall_3_11" ,sokf_static_movement,"ne2wall11" ,"bo_newall7" , []),
     ("mm_new_wall_3_11d" ,sokf_static_movement,"ne2wall11d" ,"bo_newall7" , []),
-
+    
     # wood walls
     ("mm_woodenwall1" ,sokf_static_movement,"woodenwall1" ,"bo_woodenwall1" , []),
     ("mm_woodenwall1d" ,sokf_static_movement,"woodenwall1d" ,"bo_woodenwall1d" , []),
@@ -3097,75 +3071,75 @@ scene_props = [
     ("mm_woodenwall2d" ,sokf_static_movement,"woodenwall2d" ,"bo_woodenwall2d" , []),
     ("mm_woodenwall3" ,sokf_static_movement,"woodenwall3" ,"bo_woodenwall3" , []),
     ("mm_woodenwall3d" ,sokf_static_movement,"woodenwall3d" ,"bo_woodenwall3d" , []),
-
+    
     ("mm_woodenwallsnowy1" ,sokf_static_movement,"woodenwallsnowy1" ,"bo_woodenwallsnowy1" , []),
     ("mm_woodenwallsnowy1d" ,sokf_static_movement,"woodenwallsnowy1d" ,"bo_woodenwall1d" , []),
     ("mm_woodenwallsnowy2" ,sokf_static_movement,"woodenwallsnowy2" ,"bo_woodenwallsnowy2" , []),
     ("mm_woodenwallsnowy2d" ,sokf_static_movement,"woodenwallsnowy2d" ,"bo_woodenwallsnowy2d" , []),
     ("mm_woodenwallsnowy3" ,sokf_static_movement,"woodenwallsnowy3" ,"bo_woodenwallsnowy3" , []),
     ("mm_woodenwallsnowy3d" ,sokf_static_movement,"woodenwallsnowy3d" ,"bo_woodenwallsnowy3d" , []),
-
+    
     ("mm_sp_rich_bridge4" ,sokf_static_movement|sokf_dont_move_agent_over,"sp_rich_village_bridge13" ,"bo_sp_rich_village_bridge13" , []),
     ("mm_sp_rich_bridge1", sokf_static_movement|sokf_dont_move_agent_over, "sp_rich_village_bridge1", "bo_sp_rich_village_bridge1" , []),
     ("mm_sp_rich_bridge2", sokf_static_movement|sokf_dont_move_agent_over, "sp_rich_village_bridge11", "bo_sp_rich_village_bridge11" , []),
     ("mm_sp_rich_bridge3", sokf_static_movement|sokf_dont_move_agent_over, "sp_rich_village_bridge12", "bo_sp_rich_village_bridge12" , []),
-
-
+    
+    
     ("mm_stakes" ,sokf_static_movement|sokf_dont_move_agent_over,"stackes" ,"stackes_collision" , []),
-    ("mm_stakes_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "stackes" , "stackes_collision" ,
+    ("mm_stakes_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "stackes" , "stackes_collision" , 
      [
        check_common_constructable_prop_on_hit_trigger,
        check_common_destructible_props_destroy_trigger,
        (ti_on_scene_prop_use,[]),
     ]),
-    ("mm_stakes2_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "mmstackes" , "bo_mmstackes" ,
+    ("mm_stakes2_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "mmstackes" , "bo_mmstackes" , 
      [
        check_common_constructable_prop_on_hit_trigger,
        check_common_destructible_props_destroy_trigger,
        (ti_on_scene_prop_use,[]),
     ]),
-    ("sandbags_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "sandbags" , "bo_sandbags" ,
+    ("sandbags_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "sandbags" , "bo_sandbags" , 
      [
        check_common_constructable_prop_on_hit_trigger,
        check_common_destructible_props_destroy_trigger,
        (ti_on_scene_prop_use,[]),
     ]),
-    ("chevaux_de_frise_tri_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "chevaux_de_frise_tri" , "bo_chevaux_de_frise_tri" ,
+    ("chevaux_de_frise_tri_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "chevaux_de_frise_tri" , "bo_chevaux_de_frise_tri" , 
      [
        check_common_constructable_prop_on_hit_trigger,
        check_common_destructible_props_destroy_trigger,
        (ti_on_scene_prop_use,[]),
     ]),
-
-    ("gabiondeploy_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "gabiondeploy" , "bo_gabiondeploy" ,
+    
+    ("gabiondeploy_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "gabiondeploy" , "bo_gabiondeploy" , 
      [
        check_common_constructable_prop_on_hit_trigger,
        check_common_destructible_props_destroy_trigger,
        (ti_on_scene_prop_use,[]),
     ]),
-
+    
     ("mm_fence1", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "mmfence1", "bo_mmfence1" ,
+    [    
+       check_common_constructable_prop_on_hit_trigger,
+       check_common_destructible_props_destroy_trigger,
+       (ti_on_scene_prop_use,[]),
+    ]),
+    
+    ("plank_destructible" ,sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"mm_plank1" ,"bo_mm_plank1" , 
     [
        check_common_constructable_prop_on_hit_trigger,
        check_common_destructible_props_destroy_trigger,
        (ti_on_scene_prop_use,[]),
     ]),
-
-    ("plank_destructible" ,sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"mm_plank1" ,"bo_mm_plank1" ,
-    [
-       check_common_constructable_prop_on_hit_trigger,
-       check_common_destructible_props_destroy_trigger,
-       (ti_on_scene_prop_use,[]),
-    ]),
-
-    ("earthwork1_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "earthwork1" ,"bo_earthwork1" ,
+    
+    ("earthwork1_destructible", sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible, "earthwork1" ,"bo_earthwork1" , 
      [
        check_common_constructable_prop_on_hit_trigger,
        check_common_destructible_props_destroy_trigger,
        (ti_on_scene_prop_use,[]),
     ]),
     ("mm_destructible_pioneer_builds_end", 0,"0" ,"0" , []),
-
+    
     #Pontoon bridges (contructed props (these are destructible by cannons))
     ("mm_pontoon_bridge_short" ,sokf_static_movement|sokf_dont_move_agent_over,"pontoon_deploy_short" ,"bo_pontoon_deploy_short" , []),
     ("mm_pontoon_bridge_med" ,sokf_static_movement|sokf_dont_move_agent_over,"pontoon_deploy_med" ,"bo_pontoon_deploy_med" , []),
@@ -3174,20 +3148,20 @@ scene_props = [
     #Watchtower complete
     ("mm_watchtower" ,sokf_static_movement|sokf_dont_move_agent_over,"deploy_watchtower" ,"bo_deploy_watchtower" , []),
     #Construct props destructs end
-
-
-
+    
+    
+    
     ("mm_dummy",sokf_moveable|sokf_show_hit_point_bar|sokf_destructible,"mm_dummy","bo_arena_archery_target_b",   [
       check_common_dummy_destroy_trigger,
       check_common_dummy_on_hit_trigger,
-    ]),
-
+    ]),   
+    
     ("crate_explosive_fra" ,sokf_moveable|sokf_dont_move_agent_over|spr_use_time(2),"barreltriangulated_fra" ,"barreltriangulated_collision" , [check_common_explosive_crate_use_trigger,]),
     ("crate_explosive_ger" ,sokf_moveable|sokf_dont_move_agent_over|spr_use_time(2),"barreltriangulated_prus" ,"barreltriangulated_collision" , [check_common_explosive_crate_use_trigger,]),
     ("crate_explosive_rus" ,sokf_moveable|sokf_dont_move_agent_over|spr_use_time(2),"barreltriangulated_rus" ,"barreltriangulated_collision" , [check_common_explosive_crate_use_trigger,]),
     ("crate_explosive_brit" ,sokf_moveable|sokf_dont_move_agent_over|spr_use_time(2),"barreltriangulated_brit" ,"barreltriangulated_collision" , [check_common_explosive_crate_use_trigger,]),
     ("crate_explosive_end", 0,"0" ,"0" , []),
-
+    
      ("mm_bird",sokf_moveable|sokf_destructible,"birdmodel" ,"bo_birdmodel",
      [
        (ti_on_scene_prop_destroy,
@@ -3197,25 +3171,19 @@ scene_props = [
             (neg|game_in_multiplayer_mode),
 
             (store_trigger_param_1, ":instance_no"),
-            (prop_instance_get_position, pos1, ":instance_no"),
-
+            (prop_instance_get_position, pos1, ":instance_no"),            
+            
             (particle_system_burst, "psys_dummy_straw", pos1, 70),
             (particle_system_burst, "psys_bird_blood", pos1, 70),
-
+            
             (call_script,"script_clean_up_prop_instance",":instance_no"),
           (try_end),
         ]),
       ]),
-
+    
     ("mm_ship",sokf_moveable,"mmboat1","bo_mmboat1", []),
-    ("mm_ship_longboat",sokf_moveable,"longboat","bo_longboat", []),
-    ("mm_ship_longboat_1_mast",sokf_moveable,"longboat_1_mast","bo_longboat", []),
-    ("mm_ship_longboat_2_mast",sokf_moveable,"longboat_2_masts","bo_longboat", []),
-    ("mm_ship_gunboat",sokf_moveable,"gunboat","bo_longboat", []),
-    ("mm_ship_rocket_boat",sokf_moveable,"rocket_boat","bo_longboat", []),
-    ("mm_ship_schooner",sokf_moveable,"schooner","bo_schooner", []),
-    ("ships_end", 0,"0" ,"0" , []),
-
+    
+    
       # doors
   # center all but lenth  (-2.07157,-0.021905),(-0.239644,0.210002),(-1.54562,1.92346)
   ("door_destructible",sokf_static_movement|sokf_show_hit_point_bar|sokf_destructible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a", [
@@ -3245,7 +3213,7 @@ scene_props = [
       (scene_prop_set_slot,":instance_no",scene_prop_slot_max_health,1000),
     ]),
   ]),
-
+  
   # not center high,len (-1.56653,0.0015),(0,0.202951),(-0.003239,2.55992)
   ("castle_f_sally_door_a",sokf_static_movement|sokf_show_hit_point_bar|sokf_destructible|spr_use_time(0),"castle_f_sally_door_a","bo_castle_f_sally_door_a", [
     check_sally_door_use_trigger,
@@ -3260,7 +3228,7 @@ scene_props = [
       (scene_prop_set_slot,":instance_no",scene_prop_slot_max_health,1000),
     ]),
   ]),
-
+  
   # not center high,len  (-1.49895,0.000219),(0.008935,0.157788),(0.00018,2.47752)
   ("castle_e_sally_door_a",sokf_static_movement|sokf_show_hit_point_bar|sokf_destructible|spr_use_time(0),"castle_e_sally_door_a","bo_castle_e_sally_door_a", [
     check_sally_door_use_trigger,
@@ -3275,7 +3243,7 @@ scene_props = [
       (scene_prop_set_slot,":instance_no",scene_prop_slot_max_health,3000),
     ]),
   ]),
-
+  
   # not center high,len  (-0.00935,3.03804),(-0.298414,0.410144),(-0.0213,6.0018)
   ("earth_sally_gate_left",sokf_static_movement|sokf_show_hit_point_bar|sokf_destructible|spr_use_time(0),"earth_sally_gate_left","bo_earth_sally_gate_left", [
     check_sally_door_use_trigger_double,
@@ -3304,7 +3272,7 @@ scene_props = [
       (scene_prop_set_slot,":instance_no",scene_prop_slot_max_health,2000),
     ]),
   ]),
-
+  
   # not center high,len (-1.62127,0.013701),(-0.11062,0.118904),(0.002755,4.52336)
   ("viking_keep_destroy_sally_door_right",sokf_static_movement|sokf_show_hit_point_bar|sokf_destructible|spr_use_time(0),"viking_keep_destroy_sally_door_right","bo_viking_keep_destroy_sally_door_right", [
     check_sally_door_use_trigger_double,
@@ -3332,7 +3300,7 @@ scene_props = [
       (scene_prop_set_hit_points, ":instance_no", 3000),
       (scene_prop_set_slot,":instance_no",scene_prop_slot_health,3000),
       (scene_prop_set_slot,":instance_no",scene_prop_slot_max_health,3000),
-    ]),
+    ]),    
   ]),
 
   # not center high,len   (-1.49895,0.000219),(0.008935,0.157788),(0.00018,2.47752)
@@ -3349,7 +3317,7 @@ scene_props = [
       (scene_prop_set_slot,":instance_no",scene_prop_slot_max_health,1000),
     ]),
   ]),
-
+  
   # not center high,len   (-0.025536,0.012768),(0,1.11021),(-1.58424e-16,2.18051)
   ("mm_restroom_door",sokf_static_movement|sokf_show_hit_point_bar|sokf_destructible|spr_use_time(2),"mm_restroom_door","bo_mm_restroom_door", [
     check_castle_door_use_trigger,
@@ -3364,15 +3332,15 @@ scene_props = [
       (scene_prop_set_slot,":instance_no",scene_prop_slot_max_health,1000),
     ]),
   ]),
-
+  
   ("doors_end", 0,"0" ,"0" , []),
-
+    
     # add new stuff here!
-
-
-
+    
+    
+    
     # add new stuff here!
-
+    
     ("mm_barrier_20m",sokf_invisible|sokf_type_barrier,"barrier_20m","bo_barrier_20m", []),
     ("mm_barrier_16m",sokf_invisible|sokf_type_barrier,"barrier_16m","bo_barrier_16m", []),
     ("mm_barrier_8m" ,sokf_invisible|sokf_type_barrier,"barrier_8m" ,"bo_barrier_8m" , []),
@@ -3385,9 +3353,9 @@ scene_props = [
     ("mm_barrier_no_col_2m" ,sokf_invisible|sokf_type_barrier,"barrier_2m" ,"0" , []),
 
     ("mm_destructible_props_end", 0,"0" ,"0" , []),
-
+    
     # Destroyed props.
-
+    
     ("mm_house_wall_2dd" ,sokf_static_movement,"2ddwall" ,"bo_2ddwall" , []),
     ("mm_house_wall_2ddd" ,sokf_static_movement,"2dddwall" ,"bo_2dddwall" , []),
     ("mm_house_wall_3dd" ,sokf_static_movement,"3ddwall" ,"bo_3ddwall" , []),
@@ -3414,18 +3382,18 @@ scene_props = [
     ("mm_house_wall_61ddd" ,sokf_static_movement,"61dddwall" ,"bo_61dddwall" , []),
     ("mm_house_wall_71dd" ,sokf_static_movement,"71ddwall" ,"bo_71ddwall" , []),
     ("mm_house_wall_71ddd" ,sokf_static_movement,"71dddwall" ,"bo_71dddwall" , []),
-
+    
     ("mm_wall2" ,sokf_static_movement,"wall2" ,"wall2_collision" , []),
     ("mm_walldesert2" ,sokf_static_movement,"desertWall1ddd" ,"bo_desertWall1ddd" , []),
     ("mm_wallwood2" ,sokf_static_movement,"woodWall1ddd" ,"bo_woodWall1ddd" , []),
     ("mm_wall_destoyed" ,sokf_static_movement,"wall_destoyed" ,"wall_destoyed_collision" , []),
-
+    
     ("fortnew9", sokf_static_movement|sokf_dont_move_agent_over, "fortnew9", "bo_fortnew9" , []),
     ("fortnew_111", sokf_static_movement|sokf_dont_move_agent_over, "fortnew_111", "bo_fortnew_111" , []),
     ("fortnew_29", sokf_static_movement|sokf_dont_move_agent_over, "fortnew_29", "bo_fortnew_29" , []),
     ("fortnew_39", sokf_static_movement|sokf_dont_move_agent_over, "fortnew_39", "bo_fortnew_39" , []),
     ("fortnew_41", sokf_static_movement|sokf_dont_move_agent_over, "fortnew_41", "bo_fortnew_41" , []),
-
+    
     ("mm_new_wall_1_1dd" ,sokf_static_movement,"newall1dd" ,"bo_newall1dd" , []),
     ("mm_new_wall_1_1ddd" ,sokf_static_movement,"newall1ddd" ,"bo_newall1ddd" , []),
     ("mm_new_wall_1_2dd" ,sokf_static_movement,"newall2dd" ,"bo_newall2dd" , []),
@@ -3448,7 +3416,7 @@ scene_props = [
     ("mm_new_wall_1_10ddd" ,sokf_static_movement,"newall10ddd" ,"bo_newall10ddd" , []),
     ("mm_new_wall_1_11dd" ,sokf_static_movement,"newall11dd" ,"bo_newall11dd" , []),
     ("mm_new_wall_1_11ddd" ,sokf_static_movement,"newall11ddd" ,"bo_newall11ddd" , []),
-
+    
     ("mm_new_wall_2_1dd" ,sokf_static_movement,"ne1wall1dd" ,"bo_newall1dd" , []),
     ("mm_new_wall_2_1ddd" ,sokf_static_movement,"ne1wall1ddd" ,"bo_newall1ddd" , []),
     ("mm_new_wall_2_2dd" ,sokf_static_movement,"ne1wall2dd" ,"bo_newall2dd" , []),
@@ -3471,7 +3439,7 @@ scene_props = [
     ("mm_new_wall_2_10ddd" ,sokf_static_movement,"ne1wall10ddd" ,"bo_newall10ddd" , []),
     ("mm_new_wall_2_11dd" ,sokf_static_movement,"ne1wall11dd" ,"bo_newall11dd" , []),
     ("mm_new_wall_2_11ddd" ,sokf_static_movement,"ne1wall11ddd" ,"bo_newall11ddd" , []),
-
+    
     ("mm_new_wall_3_1dd" ,sokf_static_movement,"ne2wall1dd" ,"bo_newall1dd" , []),
     ("mm_new_wall_3_1ddd" ,sokf_static_movement,"ne2wall1ddd" ,"bo_newall1ddd" , []),
     ("mm_new_wall_3_2dd" ,sokf_static_movement,"ne2wall2dd" ,"bo_newall2dd" , []),
@@ -3494,25 +3462,25 @@ scene_props = [
     ("mm_new_wall_3_10ddd" ,sokf_static_movement,"ne2wall10ddd" ,"bo_newall10ddd" , []),
     ("mm_new_wall_3_11dd" ,sokf_static_movement,"ne2wall11dd" ,"bo_newall11dd" , []),
     ("mm_new_wall_3_11ddd" ,sokf_static_movement,"ne2wall11ddd" ,"bo_newall11ddd" , []),
-
+	
     ("mm_woodenwall1dd" ,sokf_static_movement,"woodenwall1dd" ,"bo_woodenwall1dd" , []),
     ("mm_woodenwallsnowy1dd" ,sokf_static_movement,"woodenwallsnowy1dd" ,"bo_woodenwallsnowy1dd" , []),
-
+  
     ("mm_sp_poor_bridge1d" ,sokf_static_movement,"sp_poor_village_bridge1d" ,"bo_sp_poor_village_bridge1d" , []),
     ("mm_sp_rich_bridge2d" ,sokf_static_movement,"sp_rich_village_bridge11d" ,"bo_sp_rich_village_bridge11d" , []),
     ("mm_sp_rich_bridge3d", sokf_static_movement, "sp_rich_village_bridge12d", "bo_sp_rich_village_bridge12d" , []),
 
-
+        
     ("mm_sp_rich_bridge4d" ,sokf_static_movement,"sp_rich_village_bridge13d" ,"bo_sp_rich_village_bridge13d" , []),
-
+    
     ("mm_stockade_cannon_destroyed" ,sokf_static_movement,"stockade_cannon_destroyed" ,"stockade_cannon_destroyed_collision" , []),
     ("mm_stockade_destroyed" ,sokf_static_movement,"stockade_destroyed" ,"stockade_destroyed_collision" , []),
     ("mm_stakes_destroyed" ,sokf_static_movement,"stackes_destroyed" ,"0" , []),
     ("mm_stakes2_destroyed" ,sokf_static_movement,"mmstackesd" ,"bo_mmstackesd" , []),
     ("mm_dummy_destroyed",sokf_static_movement,"mm_dummy_destroyed","0", []),
-
+    
     # construction props are in fact destroyed props.
-
+    
     #Buildable/repairable palisade
     ("mm_palisadedd" ,sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"mmpalisadedd" ,"bo_mmpalisadedd" , [
    #   check_common_construction_props_start_use_trigger,
@@ -3549,8 +3517,8 @@ scene_props = [
       check_common_constructable_prop_on_hit_trigger,
       (ti_on_scene_prop_use,[]),
     ]),
-
-
+    
+    
     # Hammer Contruction Props Begin
     ("mm_stakes_construct",sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"stackes_destroyed" ,"bo_mmpalisadedd" , [
    #   check_common_construction_props_start_use_trigger,
@@ -3559,21 +3527,21 @@ scene_props = [
       check_common_constructible_props_destroy_trigger,
       (ti_on_scene_prop_use,[]),
       ]),
-    ("mm_stakes2_construct" ,sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"mmstackesd" ,"bo_mmstackesd" , [
+    ("mm_stakes2_construct" ,sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"mmstackesd" ,"bo_mmstackesd" , [  
   #    check_common_construction_props_start_use_trigger,
    #   check_common_construction_props_use_trigger,
       check_common_constructable_prop_on_hit_trigger,
       check_common_constructible_props_destroy_trigger,
       (ti_on_scene_prop_use,[]),
       ]),
-    ("sandbags_construct" ,sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"sandbags_destroy" ,"bo_sandbags_destroy" , [
+    ("sandbags_construct" ,sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"sandbags_destroy" ,"bo_sandbags_destroy" , [  
    #   check_common_construction_props_start_use_trigger,
    #   check_common_construction_props_use_trigger,
       check_common_constructable_prop_on_hit_trigger,
       check_common_constructible_props_destroy_trigger,
       (ti_on_scene_prop_use,[]),
       ]),
-    ("chevaux_de_frise_tri_construct" ,sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"chevaux_de_frise_tri_destroy" ,"bo_chevaux_de_frise_tri_destroy" , [
+    ("chevaux_de_frise_tri_construct" ,sokf_static_movement|sokf_dont_move_agent_over|sokf_show_hit_point_bar|sokf_destructible,"chevaux_de_frise_tri_destroy" ,"bo_chevaux_de_frise_tri_destroy" , [  
    #   check_common_construction_props_start_use_trigger,
    #   check_common_construction_props_use_trigger,
       check_common_constructable_prop_on_hit_trigger,
@@ -3601,19 +3569,19 @@ scene_props = [
       check_common_constructable_prop_on_hit_trigger,
       (ti_on_scene_prop_use,[]),
       ]),
-    ("earthwork1_construct_dummy" ,sokf_static_movement,"earthwork1" ,"bo_earthwork1" , [
+    ("earthwork1_construct_dummy" ,sokf_static_movement,"earthwork1" ,"bo_earthwork1" , [  
   #    check_common_construction_props_start_use_trigger,
   #    check_common_construction_props_use_trigger,
       check_common_constructable_prop_on_hit_trigger,
       check_common_constructible_props_destroy_trigger,
       (ti_on_scene_prop_use,[]),
       ]),
-    ("crate_explosive" ,sokf_static_movement,"barreltriangulated" ,"barreltriangulated_collision" , [
+    ("crate_explosive" ,sokf_static_movement,"barreltriangulated" ,"barreltriangulated_collision" , [  
      # check_common_explosive_crate_use_trigger,
     ]),
-
+    
     ("mm_construct_props_end", 0,"0" ,"0" , []),
-
+    
     ("mm_crator_small",sokf_static_movement,"crator_small","0", []),
     ("mm_crator_crator_medium_very_small",sokf_static_movement,"crator_medium_very_small","0", []),
     ("mm_crator_medium_small",sokf_static_movement,"crator_medium_small","0", []),
@@ -3621,7 +3589,7 @@ scene_props = [
     ("mm_crator_big_medium",sokf_static_movement,"crator_big_medium","0", []),
     ("mm_crator_big",sokf_static_movement,"crator_big","0", []),
     ("mm_crator_explosion",sokf_static_movement,"crator_explosion","0", []),
-
+    
     ("mm_crators_end", 0,"0" ,"0" , []),
 
     ("mm_wall_wood_planks1",sokf_static_movement,"splinters","0", []),
@@ -3633,13 +3601,13 @@ scene_props = [
     ("mm_wall_stones2",sokf_static_movement,"wall_stones2","0", []),
     ("mm_wall_stones3",sokf_static_movement,"wall_stones3","0", []),
     ("mm_wall_stones4",sokf_static_movement,"wall_stones4","0", []),
-
+    
     ("mm_wall_stonesdesert1",sokf_static_movement,"desertBricks1","0", []),
     ("mm_wall_stonesdesert2",sokf_static_movement,"desertBricks2","0", []),
-
+    
     ("mm_destroyed_props_end", 0,"0" ,"0" , []),
-
-
+    
+    
     ("mm_wallgate" ,0,"wallgate" ,"wallgate_collision" , []),
 	  ("mm_walldesertgatedesert" ,0,"desertWallGatehouse" ,"bo_desertWallGatehouse" , []),
 	  ("mm_wallwoodgatewood" ,0,"woodWallGatehouse" ,"bo_woodWallGatehouse" , []),
@@ -3677,14 +3645,14 @@ scene_props = [
       [
         (store_trigger_param_1, ":agent_id"),
         (store_trigger_param_2, ":instance_id"),
-
+        
         (agent_is_active,":agent_id"),
         (agent_is_alive,":agent_id"),
         (agent_get_player_id,":player_id",":agent_id"),
         (player_is_active,":player_id"),
-
+        
         (prop_instance_is_valid,":instance_id"),
-
+        
         (assign,":in_use",0),
         (try_for_agents, ":cur_agent"),
           (agent_is_active,":cur_agent"),
@@ -3694,41 +3662,23 @@ scene_props = [
           (neq,":cur_agent",":agent_id"), # and not meself
           (assign,":in_use",1),
         (try_end),
-
+        
         # not in use by a other player.
         (try_begin),
           (eq,":in_use",0),
-
+          
           # Always stop first.
           (call_script,"script_multiplayer_server_agent_stop_music",":agent_id"),
-
+          
           # not on horseback
           (try_begin),
             (agent_get_horse, ":player_horse", ":agent_id"),
             (le, ":player_horse", 0),
-
-            (try_begin),
-
-              (set_fixed_point_multiplier, 100),
-
-              (agent_get_position,pos33,":agent_id"),
-              (prop_instance_get_position, pos40, ":instance_id"),
-
-              (position_move_y,pos40,-200),
-              (get_distance_between_positions,":dist",pos33,pos40),
-
-              (lt, ":dist", 280),
-
-              #(get_angle_between_positions, ":rotation", pos33, pos40),
-
-
-              (prop_instance_get_scene_prop_kind,":prop_kind",":instance_id"),
-              (agent_set_slot, ":agent_id", slot_agent_used_prop_instance, ":instance_id"),
-
-              (multiplayer_send_2_int_to_player, ":player_id", multiplayer_event_return_server_action, server_action_force_music_selection, ":prop_kind"),
-            (else_try),
-              (multiplayer_send_2_int_to_player, ":player_id", multiplayer_event_show_multiplayer_message, multiplayer_message_type_error, "str_cannot_use_piano_angle"),
-            (try_end),
+            
+            (prop_instance_get_scene_prop_kind,":prop_kind",":instance_id"),
+            (agent_set_slot, ":agent_id", slot_agent_used_prop_instance, ":instance_id"),
+            
+            (multiplayer_send_2_int_to_player, ":player_id", multiplayer_event_return_server_action, server_action_force_music_selection, ":prop_kind"),
           (else_try),
             (multiplayer_send_2_int_to_player, ":player_id", multiplayer_event_show_multiplayer_message, multiplayer_message_type_error, "str_cannot_use_piano"),
           (try_end),
@@ -3743,14 +3693,14 @@ scene_props = [
       [
         (store_trigger_param_1, ":agent_id"),
         (store_trigger_param_2, ":instance_id"),
-
+        
         (agent_is_active,":agent_id"),
         (agent_is_alive,":agent_id"),
         (agent_get_player_id,":player_id",":agent_id"),
         (player_is_active,":player_id"),
-
+        
         (prop_instance_is_valid,":instance_id"),
-
+        
         (assign,":in_use",0),
         (try_for_agents, ":cur_agent"),
           (agent_is_active,":cur_agent"),
@@ -3760,40 +3710,23 @@ scene_props = [
           (neq,":cur_agent",":agent_id"), # and not meself
           (assign,":in_use",1),
         (try_end),
-
+        
         # not in use by a other player.
         (try_begin),
           (eq,":in_use",0),
-
+          
           # Always stop first.
           (call_script,"script_multiplayer_server_agent_stop_music",":agent_id"),
-
+          
           # not on horseback
           (try_begin),
             (agent_get_horse, ":player_horse", ":agent_id"),
             (le, ":player_horse", 0),
-
-            (try_begin),
-              (set_fixed_point_multiplier, 100),
-
-              (agent_get_position,pos33,":agent_id"),
-              (prop_instance_get_position, pos40, ":instance_id"),
-
-              (position_move_y,pos40,-250),
-              (get_distance_between_positions,":dist",pos33,pos40),
-
-              (lt, ":dist", 280),
-
-              #(get_angle_between_positions, ":rotation", pos33, pos40),
-
-
-              (prop_instance_get_scene_prop_kind,":prop_kind",":instance_id"),
-              (agent_set_slot, ":agent_id", slot_agent_used_prop_instance, ":instance_id"),
-
-              (multiplayer_send_2_int_to_player, ":player_id", multiplayer_event_return_server_action, server_action_force_music_selection, ":prop_kind"),
-            (else_try),
-              (multiplayer_send_2_int_to_player, ":player_id", multiplayer_event_show_multiplayer_message, multiplayer_message_type_error, "str_cannot_use_piano_angle"),
-            (try_end),
+            
+            (prop_instance_get_scene_prop_kind,":prop_kind",":instance_id"),
+            (agent_set_slot, ":agent_id", slot_agent_used_prop_instance, ":instance_id"),
+            
+            (multiplayer_send_2_int_to_player, ":player_id", multiplayer_event_return_server_action, server_action_force_music_selection, ":prop_kind"),
           (else_try),
             (multiplayer_send_2_int_to_player, ":player_id", multiplayer_event_show_multiplayer_message, multiplayer_message_type_error, "str_cannot_use_organ"),
           (try_end),
@@ -3802,21 +3735,21 @@ scene_props = [
         (try_end),
       ]),
     ]),
-
+    
     ("mm_shithouse_button",spr_use_time(1),"0","cannon_button_collision",
     [
       (ti_on_scene_prop_use,
       [
         (store_trigger_param_1, ":agent_id"),
         (store_trigger_param_2, ":instance_id"),
-
+        
         (agent_is_active,":agent_id"),
         (agent_is_alive,":agent_id"),
         (agent_get_player_id,":player_id",":agent_id"),
         (player_is_active,":player_id"),
-
+        
         (prop_instance_is_valid,":instance_id"),
-
+        
         (assign,":in_use",0),
         (try_for_agents, ":cur_agent"),
           (agent_is_active,":cur_agent"),
@@ -3826,27 +3759,27 @@ scene_props = [
           (neq,":cur_agent",":agent_id"), # and not meself
           (assign,":in_use",1),
         (try_end),
-
+        
         # not in use by a other player.
         (try_begin),
           (eq,":in_use",0),
-
+          
           # not on horseback
           (try_begin),
             (agent_get_horse, ":player_horse", ":agent_id"),
             (le, ":player_horse", 0),
-
+            
             (try_begin),
               (call_script,"script_cf_agent_is_taking_a_shit",":agent_id"),
               # we stopped shitting.
               (call_script,"script_multiplayer_server_agent_stop_music",":agent_id"),
             (else_try),
               (agent_set_slot, ":agent_id", slot_agent_used_prop_instance, ":instance_id"),
-
+              
               (agent_set_animation,":agent_id","anim_shitting",0),
-
-              (agent_set_wielded_item,":agent_id",-1),
-
+              
+              (agent_set_wielded_item,":agent_id",-1),  
+        
               # put player on stool.
               (prop_instance_get_position,pos5,":instance_id"),
               (position_move_x,pos5,30),
@@ -3860,10 +3793,10 @@ scene_props = [
         (try_end),
       ]),
     ]),
-
+    
     ("mm_ammobox_cannon", sokf_static_movement|sokf_dont_move_agent_over, "ammobox_cannon" , "bo_ammobox", []),
     ("mm_ammobox_howitzer", sokf_static_movement|sokf_dont_move_agent_over, "ammobox_howitzer" , "bo_ammobox", []),
-
+    
     ("mm_tent1",0,"mm_tent1","bo_mmtent1", []),
     ("mm_wood_heap1",0,"mm_wood_heap1","bo_mm_wood_heap1", []),
     ("mm_wood_heap2",0,"mm_wood_heap2","bo_mm_wood_heap2", []),
@@ -3874,7 +3807,7 @@ scene_props = [
     ("mm_shrine3",0,"mmshrine3","bo_shrine", []),
     ("mm_shrine4",0,"mmshrine4","bo_shrine", []),
     ("mm_arc",0,"arc","bo_arc", []),
-
+    
     ("mm_redoubt1",0,"mmredoubts1","bo_mmredoubts1", []),
     ("mm_redoubt2",0,"mmredoubts2","bo_mmredoubts1", []),
     ("mm_redoubt3",0,"mmredoubts3","bo_mmredoubts1", []),
@@ -3884,7 +3817,7 @@ scene_props = [
     ("mm_redoubt7",0,"mmredoubts7","bo_mmredoubts6", []),
     ("mm_redoubt8",0,"mmredoubts8","bo_mmredoubts6", []),
     ("mm_redoubt9",0,"mmredoubts9","bo_mmredoubts6", []),
-
+    
     ("mm_great_redoubt1",0,"greatredoubts","bo_greatredoubts", []),
     ("mm_great_redoubt2",0,"greatredoubts1","bo_greatredoubts", []),
     ("mm_smallredoubt1",0,"smallredoubts","bo_smallredoubts", []),
@@ -3894,7 +3827,7 @@ scene_props = [
 
     ("mm_trenches1",0,"mmtrenches1","bo_mmtrenches1", []),
     ("mm_trenches2",0,"mmtrenches2","bo_mmtrenches2", []),
-
+    
     ("mm_sp_small_fort",0,"testforts","bo_testforts", []),
     ("mm_sp_small_fort1",0,"testforts1","bo_testforts1", []),
     ("mm_sp_small_fort2",0,"testforts2","bo_testforts2", []),
@@ -3904,8 +3837,8 @@ scene_props = [
     ("mm_sp_czech3",0,"czech2","bo_czech2", []),
     ("mm_sp_czech4",0,"czech3","bo_czech3", []),
 
-
-
+    
+  
     ("mm_oim_fortwall1",0,"euro_fort_wall_blasted","bo_euro_fort_wall_blasted", []),
     ("mm_oim_fortwall2",0,"euro_fort_wall","bo_euro_fort_wall", []),
     ("mm_oim_fortwall3",0,"euro_fort_stairs","bo_euro_fort_stairs", []),
@@ -3913,10 +3846,10 @@ scene_props = [
     ("mm_oim_fortwall5",0,"euro_fort_tower","bo_euro_fort_tower", []),
     ("mm_oim_fortwall6",0,"euro_fort_tower_ugol","bo_euro_fort_tower_ugol", []),
     ("mm_oim_fortwall7",0,"euro_fort_wall_corner","bo_euro_fort_wall_corner", []),
-
+    
     ("mm_oim_fortwall9",0,"euro_fort_wall_in","bo_euro_fort_wall_in", []),
     ("mm_oim_fortwall10",0,"euro_fort_wall_in_half","bo_euro_fort_wall_in_half", []),
-
+    
     ("mm_oim_debris1",0,"zaval","bo_zaval", []),
     ("oim_church1",0,"oim_rus_wood_church_a","bo_oim_rus_wood_church_a", []),
     ("oim_church2",0,"polsc_chapel_1a","bo_pol_wood_church", []),
@@ -3951,7 +3884,7 @@ scene_props = [
     ("mm_sp_poor_house10",0,"sp_poor_village_houses10","bo_sp_poor_village_houses10", []),
     ("mm_sp_poor_house11",0,"sp_poor_village_houses11","bo_sp_poor_village_houses11", []),
 
-
+    
     ("mm_sp_rich_house14",0,"sp_rich_village_houses15","bo_sp_rich_village_houses1", []),
     ("mm_sp_rich_house15",0,"sp_rich_village_houses15","bo_sp_rich_village_houses1", []),
     ("mm_sp_rich_house16",0,"sp_rich_village_houses17","bo_sp_rich_village_houses1", []),
@@ -3965,7 +3898,7 @@ scene_props = [
     ("mm_sp_rich_house24",0,"sp_rich_village_houses24","bo_sp_rich_village_houses2", []),
     ("mm_sp_rich_house25",0,"sp_rich_village_houses25","bo_sp_rich_village_houses2", []),
 
-
+    
     #Trenches
     ("mm_trench_straight",0,"mm_trench_straight","bo_mm_trench_straight", []),
     ("mm_trench_corner",0,"mm_trench_corner","bo_mm_trench_corner", []),
@@ -3976,27 +3909,27 @@ scene_props = [
     ("mm_trench_bastion",0,"mm_trench_bastion","bo_mm_trench_bastion", []),
     ("mm_trench_entrance1",0,"mm_trench_entrance1","bo_mm_trench_entrance1", []),
     ("mm_trench_entrance2",0,"mm_trench_entrance2","bo_mm_trench_entrance2", []),
-
+    
     ("mm_brit_barrel_explosive" ,sokf_static_movement,"barreltriangulated_brit" ,"barreltriangulated_collision" , []),
-    ("mm_french_barrel_explosive" ,sokf_moveable|spr_use_time(2),"barreltriangulated" ,"barreltriangulated_collision" , [
+    ("mm_french_barrel_explosive" ,sokf_moveable|spr_use_time(2),"barreltriangulated" ,"barreltriangulated_collision" , [  
       (ti_on_scene_prop_use,
       [
         (store_trigger_param_1, ":agent_id"),
         (store_trigger_param_2, ":instance_id"),
-
+        
         (scene_prop_get_slot,":cur_time",":instance_id",scene_prop_slot_time),
         (le,":cur_time",0),
         (scene_prop_set_slot,":instance_id", scene_prop_slot_time, 5), #Seconds until exploding
         (scene_prop_set_slot,":instance_id", scene_prop_slot_user_agent, ":agent_id"), #User agent
       ]),]),
     ("mm_prus_barrel_explosive" ,sokf_static_movement,"barreltriangulated_brit" ,"barreltriangulated_collision" , []),
-
+    
     ("windmill_fan_turning",sokf_moveable,"windmill_fan_turning","0", []),
-
+    
     ("fans_end", 0,"0" ,"0" , []),
-
+    
     ("mm_cannon_aim_platform" ,sokf_moveable|sokf_dont_move_agent_over,"0" ,"bo_gunplane_combined" , []), # test mesh: gunplane_combined
-
+    
     # Cannon types for mappers to place on map, will be replaced with seperate bits.
     ("mm_cannon_12pdr" ,sokf_moveable,"cannon_12pdr" ,"0" , []),
     ("mm_cannon_howitzer" ,sokf_moveable,"cannon_howitzer" ,"0" , []),
@@ -4007,31 +3940,31 @@ scene_props = [
     ("mm_cannon_swievel" ,sokf_moveable,"cannon_swievel" ,"0" , []),
     ("mm_cannon_rocket" ,sokf_moveable,"rocket_launcher" ,"0" , []),
     ("mm_cannons_end", 0,"0" ,"0" , []),
-
+    
     # Normal cannonballs for mappers
     ("mm_cannonball_6pd", 0, "cannonball_6pd" , "cannonball_collision" , []),
     ("mm_cannonball_12pd", 0, "cannonball_12pd" , "cannonball_collision" , []),
     ("mm_cannonball_24pd", 0, "cannonball_24pd" , "cannonball_collision" , []),
     ("mm_cannonball_36pd", 0, "cannonball_36pd" , "cannonball_collision" , []),
     ("mm_rocket", 0, "rocket_projectile" , "cannonball_collision" , []),
-
+    
     # Static cannon bits.
     ("mm_cannon_mortar_static",sokf_static_movement,"cannon_mortar_wood_static","0",[]),
     ("mm_cannon_fort_static",sokf_static_movement,"cannon_fort_static","0",[]),
     ("mm_cannon_rocket_static",sokf_static_movement,"rocket_launcher_static","0",[]),
-
+    
     # loaded ammo cannon bits.
     ("mm_cannon_mortar_loaded_ammo",sokf_static_movement,"mortar_cartdridge","0",[]),
     ("mm_cannon_rocket_loaded_ammo",sokf_static_movement,"rocket_projectile","0",[]),
     ("mm_loaded_ammos_end", 0, "0" , "0" , []),
-
+    
     # Code cannonballs for trajectory
     ("mm_cannonball_code_only_6pd",sokf_static_movement,"cannonball_6pd","0",[]),
     ("mm_cannonball_code_only_12pd",sokf_static_movement,"cannonball_12pd","0",[]),
     ("mm_cannonball_code_only_24pd",sokf_static_movement,"cannonball_24pd","0",[]),
     ("mm_cannonball_code_only_36pd",sokf_static_movement,"cannonball_36pd","0",[]),
     ("mm_rocket_code_only",sokf_static_movement, "rocket_projectile" , "0" , []),
-
+    
     # Cannon bits :)
     ("mm_cannon_12pdr_wood",sokf_static_movement|sokf_dont_move_agent_over,"cannon_12pdr_wood","12wood_barrel",[check_cannon_animation_finished_trigger]),
     ("mm_cannon_howitzer_wood",sokf_static_movement|sokf_dont_move_agent_over,"cannon_howitzer_wood","howitzerwood_barrel",[check_cannon_animation_finished_trigger]),
@@ -4041,12 +3974,12 @@ scene_props = [
     ("mm_cannon_carronade_wood" ,sokf_static_movement,"cannon_carronade_wood" ,"navalwheels" , []),
     ("mm_cannon_swievel_wood" ,sokf_static_movement,"cannon_swievel_wood" ,"0" , []),
     ("mm_cannon_rocket_wood" ,sokf_static_movement,"rocket_launcher_wood" ,"0" , []),
-
+    
     ("mm_cannon_12pdr_wheels",sokf_static_movement,"cannon_12pdr_wheels","0",[]),
     ("mm_cannon_howitzer_wheels",sokf_static_movement,"cannon_12pdr_wheels","0",[]),
     ("mm_cannon_fort_wheels",sokf_static_movement,"cannon_fort_movable2","bo_cannon_fort",[check_cannon_wheels_animation_finished_trigger]),
     ("mm_cannon_naval_wheels",sokf_static_movement,"0","0",[]),
-
+    
     ("mm_cannon_12pdr_barrel" ,sokf_static_movement,"cannon_12pdr_barrel" ,"0" , []),
     ("mm_cannon_howitzer_barrel" ,sokf_static_movement,"cannon_howitzer_barrel" ,"0" , []),
     ("mm_cannon_mortar_barrel" ,sokf_static_movement,"cannon_mortar_barrel" ,"0" , []),
@@ -4055,75 +3988,75 @@ scene_props = [
     ("mm_cannon_carronade_barrel" ,sokf_static_movement,"cannon_carronade_barrel" ,"0" , []),
     ("mm_cannon_swievel_barrel" ,sokf_static_movement,"cannon_swievel_barrel" ,"0" , []),
     ("mm_cannon_rocket_barrel" ,sokf_static_movement,"rocket_launcher_barrel" ,"0" , []),
-
+    
     ("mm_cannon_12pdr_limber_wheels",sokf_moveable,"cannon_12pdr_limber_wheels","0",[]),
     ("mm_cannon_howitzer_limber_wheels",sokf_moveable,"cannon_12pdr_limber_wheels","0",[]),
-
+    
     # Limber part
     ("mm_limber_wood",sokf_moveable|sokf_dont_move_agent_over,"limber_wood","bo_limber_wood",[]),
     ("mm_limber_wheels",sokf_moveable,"limber_wheels","0",[]),
-
+    
     # Buttons
     # ("mm_cannon1_limber" ,sokf_moveable|spr_use_time(10),"cannon1_limber" ,"0" , [ # Only use for unlimber
       # check_mm_use_cannon_prop_start_trigger,
       # check_mm_use_cannon_prop_end_trigger,
       # check_mm_use_cannon_prop_cancel_trigger,
     # ]),
-
+    
     ("mm_cannon_12pdr_limber" ,sokf_moveable|sokf_dont_move_agent_over|spr_use_time(10),"cannon_12pdr_limber" ,"bo_cannon4_limber" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_cannon_howitzer_limber" ,sokf_moveable|sokf_dont_move_agent_over|spr_use_time(10),"cannon_howitzer_limber" ,"bo_cannon4_limber" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_limber_button", sokf_moveable|spr_use_time(10), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_pickup_rocket_button", sokf_moveable|spr_use_time(15), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_aim_button", sokf_moveable|spr_use_time(0), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_load_cartridge_button", sokf_moveable|spr_use_time(2), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_load_bomb_button", sokf_moveable|spr_use_time(2), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_load_rocket_button", sokf_moveable|spr_use_time(6), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_reload_button", sokf_moveable|spr_use_time(9), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_12pdr_push_button",sokf_moveable|spr_use_time(1),"0","12wheels",[
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
@@ -4144,35 +4077,35 @@ scene_props = [
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     # Taking of difirent ammo
     ("mm_round_button", sokf_moveable|spr_use_time(2), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_shell_button", sokf_moveable|spr_use_time(2), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_canister_button", sokf_moveable|spr_use_time(2), "0" , "cannon_button_collision" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_bomb_button", sokf_moveable|spr_use_time(2), "mortar_bomb_stack" , "bo_ammobox" , [
       check_mm_use_cannon_prop_start_trigger,
       check_mm_use_cannon_prop_end_trigger,
       check_mm_use_cannon_prop_cancel_trigger,
     ]),
-
+    
     ("mm_buttons_end", 0,"0" ,"0" , []),
-
-    # Rudders
+    
+    #("mm_ship",sokf_moveable,"mmboat1","bo_mmboat1", []),
     ("mm_ship_rudder",sokf_static_movement,"mmrudder","0", []),
     ("mm_ship_rudder_control",sokf_moveable|spr_use_time(1),"mmrudder","bo_mmrudder", [
       (ti_on_scene_prop_use,
@@ -4183,32 +4116,9 @@ scene_props = [
         (call_script, "script_use_item", ":instance_id", ":agent_id"),
       ]),
     ]),
-    ("mm_ship_longboat_rudder",sokf_static_movement,"longboat_rudder","0", []),
-    ("mm_ship_longboat_rudder_control",sokf_moveable|spr_use_time(1),"longboat_rudder","bo_mmrudder", [
-      (ti_on_scene_prop_use,
-      [
-        (store_trigger_param_1, ":agent_id"),
-        (store_trigger_param_2, ":instance_id"),
-
-        (call_script, "script_use_item", ":instance_id", ":agent_id"),
-      ]),
-    ]),
-    ("mm_ship_schooner_rudder",sokf_static_movement,"schooner_rudder","0", []),
-    ("mm_ship_schooner_rudder_control",sokf_moveable|spr_use_time(1),"schooner_rudder","bo_schooner_rudder", [
-      (ti_on_scene_prop_use,
-      [
-        (store_trigger_param_1, ":agent_id"),
-        (store_trigger_param_2, ":instance_id"),
-
-        (call_script, "script_use_item", ":instance_id", ":agent_id"),
-      ]),
-    ]),
-
     ("mm_ship_hit_detect",sokf_moveable,"0","bo_boat_hit_detect", []),
     ("mm_ship_hit_detect_back",sokf_moveable,"0","bo_boat_hit_detect_back", []),
-    ("mm_ship_schooner_hit_detect",sokf_moveable,"0","bo_schooner_hit_detect", []),
-    ("mm_ship_schooner_hit_detect_back",sokf_moveable,"0","bo_schooner_hit_detect_back", []),
-
+    
     # Digging stuff
     ("mm_tunnel_wall" ,sokf_moveable,"mm_shovel_earth3" ,"bo_mm_shovel_earth3" , [check_common_earth_on_hit_trigger,]),
     ("mm_earth_dig1" ,sokf_moveable,"mm_shovel_earth" ,"bo_mm_shovel_earth" , [check_common_earth_on_hit_trigger,]),
@@ -4216,7 +4126,7 @@ scene_props = [
     ("mm_earth_dig3" ,sokf_moveable,"mm_shovel_earth2" ,"bo_mm_shovel_earth2" , [check_common_earth_on_hit_trigger,]),
     ("mm_earth_dig4" ,sokf_moveable,"mm_shovel_earth4" ,"bo_mm_shovel_earth4" , [check_common_earth_on_hit_trigger,]),
     ("mm_earths_end", 0,"0" ,"0" , []),
-  #Ambient sound props
+  #Ambient sound props  
 
   #Global (plays wherever you are without position)
  ("ambience_sound_global_wind_snow",0,"0" ,"0" , [
@@ -4224,49 +4134,49 @@ scene_props = [
     [
       (neg|multiplayer_is_dedicated_server),
       (play_sound,"snd_snow"),
-    ]),]),
+    ]),]),  
 
  ("ambience_sound_global_night",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
       (neg|multiplayer_is_dedicated_server),
       (play_sound,"snd_global_ambient_night"),
-    ]),]),
+    ]),]),  
 
  ("ambience_sound_global_beach",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
       (neg|multiplayer_is_dedicated_server),
       (play_sound,"snd_global_ambient_beach"),
-    ]),]),
+    ]),]),  
 
  ("ambience_sound_global_farmland",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
       (neg|multiplayer_is_dedicated_server),
       (play_sound,"snd_global_ambient_farmland"),
-    ]),]),
+    ]),]),  
 
  ("ambience_sound_global_farmland_evening",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
       (neg|multiplayer_is_dedicated_server),
       (play_sound,"snd_global_ambient_farmland_evening"),
-    ]),]),
+    ]),]),  
 
  ("ambience_sound_global_farmland_empty",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
       (neg|multiplayer_is_dedicated_server),
       (play_sound,"snd_global_ambient_farmland_empty"),
-    ]),]),
-
+    ]),]),  
+ 
 ("ambience_sound_global_city_empty",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
       (neg|multiplayer_is_dedicated_server),
       (play_sound,"snd_global_ambient_city_empty"),
-    ]),]),
+    ]),]),  
 
 
  #Local (plays at the position of the prop)
@@ -4277,7 +4187,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_birds"),
-    ]), ]),
+    ]), ]),  
  ("ambience_sound_local_birds_many",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4285,7 +4195,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_birds_many"),
-    ]), ]),
+    ]), ]),  
  ("ambience_sound_local_ocean",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4293,7 +4203,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_ocean"),
-    ]), ]),
+    ]), ]),  
   ("ambience_sound_local_crickets",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4301,7 +4211,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_crickets_few"),
-    ]), ]),
+    ]), ]),  
   ("ambience_sound_local_crickets_many",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4309,7 +4219,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_crickets_many"),
-    ]), ]),
+    ]), ]),     
   ("ambience_sound_local_river",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4317,7 +4227,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_river"),
-    ]), ]),
+    ]), ]),   
   ("ambience_sound_local_night",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4325,7 +4235,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_night"),
-    ]), ]),
+    ]), ]),  
   ("ambience_sound_local_seagulls",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4333,7 +4243,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_seagulls"),
-    ]), ]),
+    ]), ]),  
   ("ambience_sound_local_flys",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4341,7 +4251,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_fly"),
-    ]), ]),
+    ]), ]),    
 
  ("ambience_sound_local_roof_rain",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
@@ -4350,7 +4260,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_roof"),
-    ]), ]),
+    ]), ]), 
  ("ambience_sound_local_stone_rain",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4358,7 +4268,7 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_stone"),
-    ]), ]),
+    ]), ]), 
  ("ambience_sound_local_windmill",0,"0" ,"0" , [
   (ti_on_init_scene_prop,
     [
@@ -4366,24 +4276,24 @@ scene_props = [
       #(store_trigger_param_1,":instance_no"),
       #(prop_instance_get_position,pos1,":instance_no"),
       (play_sound,"snd_ambient_windmill"),
-    ]), ]),
-
+    ]), ]), 
+    
   #Non-constant local sounds
   ("ambience_sound_local_crow",0,"0","0",
    [
    (ti_on_scene_prop_init,
     [
       (store_trigger_param_1,":instance_id"),
-
+    
       (store_random_in_range,":cur_time",1,31), #0-30 sec until first burst
       (scene_prop_set_slot, ":instance_id", scene_prop_slot_time,":cur_time"), #Initial time until first particle burst in sec
                                                                                #delete the random and change cur_time to a value
                                                                                #to set this to the same for all props
     ]),
    ]),
-
-
-  #Extra for siege
+            
+   
+  #Extra for siege    
  ("headquarters_flag_attacker_no_capture",sokf_moveable|sokf_face_player,"mp_flag_blue","0", []),
  ("mm_siege_spawn_code_only", 0,"0" ,"0" , []),
 
@@ -4393,22 +4303,22 @@ scene_props = [
  ("formation_locator_3",sokf_moveable|sokf_face_player,"ctf_flag_prussia","0", []),
  ("formation_locator_4",sokf_moveable|sokf_face_player,"ctf_flag_russia","0", []),
  ("formation_locator_5",sokf_moveable|sokf_face_player,"ctf_flag_austria","0", []),
-
+ 
  #For SP
  ("objectives_locator",sokf_moveable|sokf_face_player,"ctf_flag_france","0", []),
-
+ 
  #Static Player Limiters
  ("mm_player_limiter_2m" ,sokf_invisible|sokf_type_player_limiter,"barrier_2m" ,"bo_barrier_2m" , []),
  ("mm_player_limiter_4m" ,sokf_invisible|sokf_type_player_limiter,"barrier_4m" ,"bo_barrier_4m" , []),
  ("mm_player_limiter_8m" ,sokf_invisible|sokf_type_player_limiter,"barrier_8m" ,"bo_barrier_8m" , []),
  ("mm_player_limiter_16m",sokf_invisible|sokf_type_player_limiter,"barrier_16m","bo_barrier_16m", []),
-
+ 
  #Movable Limiters to enable areas at a certain point
  ("mm_player_limiter_move_1" ,sokf_invisible|sokf_type_player_limiter|sokf_moveable,"barrier_4m" ,"bo_barrier_4m" , []),
  ("mm_player_limiter_move_2" ,sokf_invisible|sokf_type_player_limiter|sokf_moveable,"barrier_4m" ,"bo_barrier_4m" , []),
  ("mm_player_limiter_move_3" ,sokf_invisible|sokf_type_player_limiter|sokf_moveable,"barrier_4m" ,"bo_barrier_4m" , []),
  ("mm_player_limiter_move_4" ,sokf_invisible|sokf_type_player_limiter|sokf_moveable,"barrier_4m" ,"bo_barrier_4m" , []),
-
+  
  #SP props
  ("mm_sp_ladder_sokolnitz_only",spr_use_time(0),"ladder","boladder", [
  (ti_on_scene_prop_use,
@@ -4416,7 +4326,7 @@ scene_props = [
     (assign,"$g_ladder_used",1),
   ]),
  ]),
-
+ 
  ("mm_sp_crate_explosive",sokf_moveable|sokf_dynamic_physics|sokf_destructible,"barreltriangulated" ,"barreltriangulated_collision" , [
   (ti_on_init_scene_prop,
     [
@@ -4424,7 +4334,7 @@ scene_props = [
       (neg|game_in_multiplayer_mode),
       (store_trigger_param_1,":prop_id"),
       (scene_prop_set_hit_points,":prop_id",70),
-
+      
       (set_fixed_point_multiplier, 100),
       (position_set_x, pos0, 1500), #mass=15.0
       (position_set_y, pos0, 80), #friction coefficient = 0.8
@@ -4434,21 +4344,21 @@ scene_props = [
       (position_set_y, pos0, 300),
       (position_set_z, pos0, 300),
       (prop_instance_dynamics_set_omega, ":prop_id", pos0),
-    ]),
+    ]), 
   (ti_on_scene_prop_hit,
     [
   #    (this_or_next|multiplayer_is_server), #In case someone wants them in a multi scene...
   #    (neg|game_in_multiplayer_mode),
-  #
+  #    
   #    (store_trigger_param_1,":prop_id"),
   #    (set_fixed_point_multiplier, 1),
   #    (position_get_x,":attacker_agent",pos2),
   #    (scene_prop_set_slot,":prop_id",scene_prop_slot_last_hit_by,":attacker_agent"),
   #    (set_fixed_point_multiplier, 100),
-
+      
       (try_begin),
         (neg|game_in_multiplayer_mode),
-        (store_current_scene,":cur_scene"),
+        (store_current_scene,":cur_scene"), 
         (eq,":cur_scene","scn_sp_vienna"), #ONLY for Vienna Battle
         (display_message,"@Careful...",0xF00000),
       (try_end),
@@ -4457,11 +4367,11 @@ scene_props = [
     [
       (this_or_next|multiplayer_is_server), #In case someone wants them in a multi scene...
       (neg|game_in_multiplayer_mode),
-
+      
       (store_trigger_param_1,":prop_id"),
     #  (scene_prop_get_slot,":attacker_agent_no",":prop_id",scene_prop_slot_last_hit_by),
       (assign,":attacker_agent_no",-1),
-
+      
       (prop_instance_get_position,pos3,":prop_id"),
       (copy_position,pos47,pos3),
       (position_move_z,pos3,500),
@@ -4470,7 +4380,7 @@ scene_props = [
       (call_script,"script_explosion_at_position",":attacker_agent_no",300,500),#If you hit it too much, it will blow up in your face!
       (try_begin),
         (neg|game_in_multiplayer_mode),
-        (store_current_scene,":cur_scene"),
+        (store_current_scene,":cur_scene"), 
         (eq,":cur_scene","scn_sp_vienna"), #ONLY for Vienna Battle
         (get_player_agent_no,":player_agent"),
         (agent_is_active,":player_agent"),
@@ -4479,19 +4389,19 @@ scene_props = [
       (try_end),
     ]),
  ]),
-
- ("mm_campaign_table",spr_use_time(0),"table_tavern","botable_tavern",
+ 
+ ("mm_campaign_table",spr_use_time(0),"table_tavern","botable_tavern", 
  [
   (ti_on_scene_prop_use,
     [
      (neg|game_in_multiplayer_mode),
-
+      
      (start_presentation,"prsnt_singleplayer_campain_map"),
-
+     
      #(store_trigger_param_1, ":agent_id"),
      #(store_trigger_param_2, ":instance_no"),
-
-
+     
+     
      ]),
  ]),
 
@@ -4499,44 +4409,37 @@ scene_props = [
     (ti_on_scene_prop_use,
     [
       (store_trigger_param_1, ":agent_id"),
-      #(store_trigger_param_2, ":instance_id"),
+      (store_trigger_param_2, ":instance_id"),
 
-      #(neg|scene_prop_slot_eq, ":instance_id", scene_prop_slot_just_fired, 1), # abuse just_fired for already used.
-
+      (neg|scene_prop_slot_eq, ":instance_id", scene_prop_slot_just_fired, 1), # abuse just_fired for already used.
+      
       (agent_is_active,":agent_id"),
       (agent_is_alive,":agent_id"),
-
+      
       # remove his shit.
       #(try_for_range_backwards,":equipment_slot",0,4), # ,ek_item_0,ek_head),
       #  (agent_get_item_slot, ":item_id", ":agent_id", ":equipment_slot"),
-
+        
       #  (gt,":item_id",-1), # even have a item there?
-
+        
       #  (agent_unequip_item, ":agent_id", ":item_id", ":equipment_slot"),
       #(try_end),
-      (try_begin),
-        (agent_get_item_slot, ":item_id", ":agent_id", 4), #ek_head
-        (gt,":item_id",-1), # even have a item there?
-        (agent_unequip_item, ":agent_id", ":item_id", 4), #ek_head
-      (try_end),
-
+      (agent_get_item_slot, ":item_id", ":agent_id", 4), #ek_head
+      (gt,":item_id",-1), # even have a item there?
+      (agent_unequip_item, ":agent_id", ":item_id", 4), #ek_head
+      
       # add ze goodies.
       (agent_equip_item,":agent_id","itm_pirate_hat"),
       #(agent_equip_item,":agent_id","itm_french_officer_pistol"),
       #(agent_equip_item,":agent_id","itm_pistol_ammo"),
       #(agent_equip_item,":agent_id","itm_spyglass"),
       #(agent_equip_item,":agent_id","itm_french_light_cav_off_sabre"),
-
+      
       #(agent_set_wielded_item,":agent_id","itm_french_officer_pistol"),
-
-      #(scene_prop_set_slot,":instance_id",scene_prop_slot_just_fired,1),
-
-      (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
-        (player_is_active, ":player_no"),
-        (multiplayer_send_3_int_to_player, ":player_no", multiplayer_event_return_agent_set_item, ":agent_id", "itm_pirate_hat", 4),
-      (try_end),
+      
+      (scene_prop_set_slot,":instance_id",scene_prop_slot_just_fired,1),
     ]),
   ]),
-
+ 
   ("scene_props_end", 0,"0" ,"0" , []),
 ]

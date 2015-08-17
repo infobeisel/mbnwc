@@ -68,7 +68,6 @@ game_menus = [
       (troop_set_slot,"trp_french_infantry_ai", slot_troop_initial_morale, 3000),
       (troop_set_slot,"trp_french_infantry2_ai", slot_troop_initial_morale, 3000),
       (troop_set_slot,"trp_french_infantry_vistula_ai", slot_troop_initial_morale, 3000),
-      (troop_set_slot,"trp_french_infantry_bavarian_ai", slot_troop_initial_morale, 3000),
       (troop_set_slot,"trp_french_voltigeur_ai", slot_troop_initial_morale, 3000),
       (troop_set_slot,"trp_french_old_guard_ai", slot_troop_initial_morale, 5000),
       (troop_set_slot,"trp_french_hussar_ai", slot_troop_initial_morale, 5000),

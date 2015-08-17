@@ -134,7 +134,6 @@ multiplayer_event_return_server_action                        = 118
 multiplayer_event_return_before_round_end                     = 119
 multiplayer_event_return_destructible_prop_spawn              = 120
 multiplayer_event_return_cannon_hit_effect_event              = 121
-multiplayer_event_return_agent_set_item                       = 122
 
 # 127 is max!,  7 left.   (1 = unused)
 
@@ -235,11 +234,9 @@ multi_item_class_type_lance = 9
 multi_item_class_type_instrument = 10
 multi_item_class_type_large_shield = 11
 multi_item_class_type_gun = 12
-multi_item_class_type_pistol = 29
 multi_item_class_type_crossbow = 13
 multi_item_class_type_arrow = 14
 multi_item_class_type_bullet = 15
-multi_item_class_type_bullet_pistol = 30
 multi_item_class_type_misc = 16
 multi_item_class_type_misc_axe = 17
 multi_item_class_type_horse = 18

@@ -9,6 +9,8 @@ from ID_factions import *
 ##############################################################
 
 
+
+
 ########################################################
 ##  Open World Constants ###############################
 ########################################################
@@ -16,6 +18,7 @@ from ID_factions import *
 ow_multiplayer_event_travel  = 123
 ow_multiplayer_event_agent_equip_item = 124
 ow_multiplayer_event_master_player_joined_prsnt = 125
+ow_multiplayer_event_travelled_joined = 126
 
 #database events
 ow_db_event_load_player = 7
@@ -31,6 +34,8 @@ ow_db_event_get_maps = 8
 ow_db_event_update_travel = 10
 ow_db_event_load_travel = 11
 ow_db_event_update_map = 12
+ow_db_event_test_connection = 15
+
 
 #configurables (should be located maybe in "module_variables"
 ow_worldinstance = 0
@@ -39,6 +44,7 @@ ow_worldinstance = 0
 ow_db_callback_reserve_slot = 0
 ow_db_callback_handle_join = 1
 ow_db_callback_set_lobby_presentations = 2
+ow_db_callback_equip_agent = 3
 
 ow_multiplayer_map_edge_entry_points = 40
 
@@ -63,13 +69,14 @@ ow_multiplayer_scene_names_end = "str_ow_multiscene_names_end"
 
 
 
+
+
 ########################################################
 ##  ITEM SLOTS             #############################
 ########################################################
 
 slot_item_multiplayer_item_class   = 1 #temporary, can be moved to higher values
-slot_item_multiplayer_item_class2   = 2 #temporary, can be moved to higher values
-slot_item_multiplayer_availability_linked_list_begin = 3 #temporary, can be moved to higher values
+slot_item_multiplayer_availability_linked_list_begin = 2 #temporary, can be moved to higher values
 
 
 ########################################################
@@ -92,20 +99,19 @@ slot_agent_cur_use_speed_modifier = 13
 slot_agent_cur_speed_modifier     = 14
 slot_agent_music_play_together    = 15
 slot_agent_base_speed_mod         = 16
-slot_agent_started_playing_music_at = 17
 # slot_agent_teleport_pos_x         = 17
 # slot_agent_teleport_pos_y         = 18
 # slot_agent_teleport_pos_z         = 19
 # slot_agent_teleport_pos_z_rot     = 20
-slot_agent_flag_target            = 18
-slot_agent_behaviour              = 19
-slot_agent_in_duel_with           = 20
-slot_agent_duel_start_time        = 21
-slot_agent_map_overlay_id         = 22
-slot_agent_is_running_away        = 23
-slot_agent_courage_score          = 24
-slot_agent_state                  = 25
-slot_agent_walker_occupation      = 26
+slot_agent_flag_target            = 17
+slot_agent_behaviour              = 18
+slot_agent_in_duel_with           = 19
+slot_agent_duel_start_time        = 20
+slot_agent_map_overlay_id         = 21
+slot_agent_is_running_away        = 22
+slot_agent_courage_score          = 23
+slot_agent_state                  = 24
+slot_agent_walker_occupation      = 25
 
 ########################################################
 ##  FACTION SLOTS          #############################
@@ -298,10 +304,10 @@ multiplayer_troops_end = "trp_multiplayer_end"
 multiplayer_ai_troops_begin = "trp_british_infantry_ai"
 multiplayer_ai_troops_end = multiplayer_troops_begin
 
-multiplayer_scenes_begin = "scn_mp_ambush"
+multiplayer_scenes_begin = "scn_mp_arabian_harbour"
 multiplayer_scenes_end = "scn_multiplayer_maps_end"
 
-multiplayer_scene_names_begin = "str_mp_ambush"
+multiplayer_scene_names_begin = "str_mp_arabian_harbour"
 multiplayer_scene_names_end = "str_multi_scene_end"
 
 multiplayer_flag_projections_begin = "mesh_flag_project_sw"
@@ -533,7 +539,7 @@ mm_destroyed_props_end       = "spr_mm_destroyed_props_end"
 
 mm_cannon_types_begin        = "spr_mm_cannon_12pdr"
 mm_cannon_types_end          = "spr_mm_cannons_end"
-
+ 
 mm_cannon_wood_types_begin   = "spr_mm_cannon_12pdr_wood"
 mm_cannon_wood_types_end     = "spr_mm_cannon_12pdr_wheels"
 
@@ -785,7 +791,7 @@ cannon_command_fire         = 5
 cannon_command_stop_aim     = 6
 
 cannon_commands_begin         = cannon_command_up
-cannon_commands_end           = 7
+cannon_commands_end           = 7 
 
 
 kill_type_self          = 1
