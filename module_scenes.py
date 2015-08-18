@@ -48,7 +48,7 @@ scenes = [
 
 
 #OPEN WORLD
-  ("ow_scene_1",sf_generate,"none", "none", (0,0),(100,100),-100,"0x0000000130010e0e0005fd84000011c60000285b00005cbe",
+  ("ow_scene_1",sf_generate,"none", "none", (0,0),(100,100),-100,"0x00000001300389800003a4ea000058340000637a0000399b",
      [],[],"outer_terrain_plain"),
 
   ("ow_scene_2",sf_generate,"none", "none", (0,0),(100,100),-100,"0x000000023002a1ba0004210900003ca000006a8900007a7b",

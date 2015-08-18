@@ -3367,7 +3367,6 @@ mission_templates = [
 		(call_script,"script_db_test"),
         (multiplayer_is_server),
 
-        ##VARS
         #get player unique id and player username to get a unique key for the database
         (player_get_unique_id, ":unique_player_id", ":new_player_player_no"),
         ##send the player his unique id

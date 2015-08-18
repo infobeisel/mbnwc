@@ -18,7 +18,7 @@ from ID_factions import *
 ow_multiplayer_event_travel  = 123
 ow_multiplayer_event_agent_equip_item = 124
 ow_multiplayer_event_master_player_joined_prsnt = 125
-ow_multiplayer_event_travelled_joined = 126
+ow_multiplayer_event_fade_out_agent = 126
 
 #database events
 ow_db_event_load_player = 7

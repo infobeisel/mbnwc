@@ -1226,13 +1226,13 @@ check_travel_portal_use_trigger = (ti_on_scene_prop_use, [
   
 scene_props = [
 #OPEN WORLD---------------------------------------------------------------------------------------------------------------------------
-     ("travel_passage_north",sokf_invisible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a",[check_travel_portal_use_trigger,
+     ("travel_passage_north",sokf_invisible|spr_use_time(1),"barrier_20m","bo_barrier_20m",[check_travel_portal_use_trigger,
      ]),
-     ("travel_passage_east",sokf_invisible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a",[check_travel_portal_use_trigger,
+     ("travel_passage_east",sokf_invisible|spr_use_time(1),"barrier_20m","bo_barrier_20m",[check_travel_portal_use_trigger,
      ]),
-     ("travel_passage_south",sokf_invisible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a",[check_travel_portal_use_trigger,
+     ("travel_passage_south",sokf_invisible|spr_use_time(1),"barrier_20m","bo_barrier_20m",[check_travel_portal_use_trigger,
      ]),
-     ("travel_passage_west",sokf_invisible|spr_use_time(2),"tutorial_door_a","bo_tutorial_door_a",[check_travel_portal_use_trigger,
+     ("travel_passage_west",sokf_invisible|spr_use_time(1),"barrier_20m","bo_barrier_20m",[check_travel_portal_use_trigger,
      ]),
 
 #OPEN WORLD END ----------------------------------------------------------------------------------------------------------------------

@@ -519,10 +519,8 @@ scripts = [
         #password in s1
         (store_script_param, ":passwordlength",4),
         #do the directives for the client.exe
-        (try_begin),#if agent id is valid
-            (ge,":agent_id",0),#if valid agent
-            (agent_fade_out, ":agent_id"),
-        (try_end),
+        
+		
         #directives
         ##TODO CHANGE THE APP TO GET SERVER DATA TO CONNECt DIreCtLY tO . find out reg0-... , s0-... and parse ip adress directly.
         (assign,reg0,":iplength"),
@@ -555,7 +553,11 @@ scripts = [
 
         (display_message,"@{s0},{reg0},{reg1},{s1},{reg2}"),
         (str_store_string,s3, "@character menu reached"),
-        (finish_mission, 0),
+		
+		(multiplayer_send_int_to_server, ow_multiplayer_event_fade_out_agent, ":agent_id"),#fade out agent (server cares)
+        (finish_mission, 2),
+
+
     ]),
 
     #script_equip_player_agent
@@ -578,6 +580,7 @@ scripts = [
         (store_script_param, ":w3optval", 9),
         (store_script_param, ":w4optval",10),
 		
+		
 		(assign,":refill_ammo",1), #basically refill ammo
 
         (try_begin),#w1
@@ -590,9 +593,9 @@ scripts = [
             (agent_equip_item, ":agent_id", ":w1", 1),
 			(try_begin),
 				(item_get_slot, ":item_class", ":w1", slot_item_multiplayer_item_class),
-				(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
-				(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
-				(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),#a weapon with ammo/an ammopack
+				#(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
+				#(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
+				#(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),#a weapon with ammo/an ammopack
 				(neq,":w1optval",-1),#a weapon with ammo/an ammopack, ammo amount is defined (not -1)
 				(agent_set_ammo, ":agent_id", ":w1", ":w1optval"),
 				(assign,":refill_ammo",0),
@@ -608,9 +611,9 @@ scripts = [
             (agent_equip_item, ":agent_id", ":w2", 2),
 			(try_begin),
 				(item_get_slot, ":item_class", ":w2", slot_item_multiplayer_item_class),
-				(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
-				(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
-				(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),#a weapon with ammo/an ammopack
+				#(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
+				#(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
+				#(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),#a weapon with ammo/an ammopack
 				(neq,":w2optval",-1),#a weapon with ammo/an ammopack, ammo amount is defined (not -1)
 				(agent_set_ammo, ":agent_id", ":w2", ":w2optval"),
 				(assign,":refill_ammo",0),
@@ -626,9 +629,9 @@ scripts = [
             (agent_equip_item, ":agent_id", ":w3", 3),
 			(try_begin),
 				(item_get_slot, ":item_class", ":w3", slot_item_multiplayer_item_class),
-				(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
-				(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
-				(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),#a weapon with ammo/an ammopack
+				#(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
+				#(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
+				#(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),#a weapon with ammo/an ammopack
 				(neq,":w3optval",-1),#a weapon with ammo/an ammopack, ammo amount is defined (not -1)
 				(agent_set_ammo, ":agent_id", ":w3", ":w3optval"),
 				(assign,":refill_ammo",0),
@@ -644,9 +647,9 @@ scripts = [
             (agent_equip_item, ":agent_id", ":w4", 4),
 			(try_begin),
 				(item_get_slot, ":item_class", ":w4", slot_item_multiplayer_item_class),
-				(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
-				(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
-				(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),
+				#(this_or_next|eq, ":item_class", multi_item_class_type_bullet),
+				#(this_or_next|eq, ":item_class", multi_item_class_type_arrow),
+				#(is_between, ":item_class", multi_item_class_type_ranged_weapons_begin, multi_item_class_type_ranged_weapons_end),
 				(neq,":w4optval",-1),#a weapon with ammo/an ammopack, ammo amount is defined (not -1)
 				(agent_set_ammo, ":agent_id", ":w4", ":w4optval"),
 				(assign,":refill_ammo",0),
@@ -8107,6 +8110,32 @@ scripts = [
           (try_end),
         (try_end),
        # Beaver End
+	  #OPEN WORLD---------------------------------------
+	  (else_try),
+		(eq, ":event_type", ow_multiplayer_event_fade_out_agent), #player leaves server, leave no tracks
+		    (store_script_param, ":agent_id", 3),
+			(try_begin),#if agent id is valid
+				(ge,":agent_id",0),#if valid agent
+				(agent_get_wielded_item, ":itm",":agent_id",0),
+				(agent_unequip_item, ":agent_id", ":itm"),
+				(try_for_range, ":cur_slot",0, 4),#delete the weapon slots
+					(try_begin),
+						(agent_get_item_slot, ":itmid", ":agent_id", ":cur_slot"),#0-3
+						(store_add,":ind",":cur_slot",1),
+						(agent_unequip_item, ":agent_id", ":itmid", ":ind"),#1-4 -.-
+					(try_end),
+				(try_end),
+				(agent_get_horse,":horse_agent",":agent_id"),
+				(try_begin),#fade out his horse
+					(neq,":horse_agent",-1),
+					(scene_prop_fade_out,":horse_agent", 0),
+					(agent_fade_out,":horse_agent"),
+				(try_end),
+				(try_begin),
+					(agent_fade_out, ":agent_id"),#fade out the agent
+				(try_end),
+			(try_end),
+		#OPEN WORLD END---------------------------------------
       (else_try),
         ###############
         #CLIENT EVENTS#
@@ -8923,13 +8952,6 @@ scripts = [
           (multiplayer_get_my_player, ":player_id"),
           (str_store_player_username,s0,":player_id"),
           (call_script,"script_db_insert_player_if_not_exist","$uid",":player_id",ow_db_callback_set_lobby_presentations,":worldinstance"),#create player in db ,
-#		(else_try),
-#          (eq, ":event_type", ow_multiplayer_event_travelled_joined),#i travelled here and want to spawn.
-#		  (store_script_param, ":player_uid", 3), #what is my unique id?
-#          (store_script_param, ":local_id", 4), #local id
-#			(str_store_player_username, s0, ":local_id"),
-#		  (call_script,"script_db_load_player_data",":player_uid",":local_id",ow_db_callback_handle_join),#will do the rest
-
 
 # OPEN WORLD END -------------------------------------------------------------------------------------------------------
   
