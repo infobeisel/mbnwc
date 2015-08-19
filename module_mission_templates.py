@@ -3527,6 +3527,12 @@ mission_templates = [
 
     ],[
 	
+	common_battle_init_banner,
+      
+      multiplayer_server_check_polls, multiplayer_server_generate_build_points,
+      multiplayer_server_bonuses,
+
+	  
     (ti_once,0,0,[],[
         (assign,"$uid",-1),#init unique id with -1 as client.
         #(assign,"$showflag",0),
@@ -3557,18 +3563,25 @@ mission_templates = [
 		(call_script,"script_db_load_player_data",":unique_player_id",":new_player_player_no",ow_db_callback_handle_join),#will do the rest
 
     #conquest
+		(call_script, "script_multiplayer_server_player_joined_common", ":new_player_player_no"),
     ]),
 
    
     (ti_on_agent_spawn,1, 0, [],
     [
         (store_trigger_param_1, ":agent_no"),
-
+    #conquest
+		(call_script, "script_multiplayer_server_on_agent_spawn_common", ":agent_no"),
+		
+	
     #ow
         (try_begin),
 			(multiplayer_is_server),
+			(agent_get_player_id,":player",":agent_no"),	
+			(player_slot_eq, ":player", slot_player_first_spawn, 1),#is this players first spawn on this server ? if yes, he travelled here and we do the ow routines, if not, this was conquest-related.
 			#prints error in console (invalid player id, -1), but works (with only one player tested).
 			(agent_get_player_id,":player",":agent_no"),
+			(player_slot_eq, ":player", slot_player_first_spawn, 1),#is this players first spawn on this server ? if yes, he travelled here and we have to equip him. if not, he just respawned here
 			(player_get_unique_id,":uid", ":player"),
 			(str_store_player_username, s0,":player"),
 			(call_script,"script_db_load_inventory",":uid",":player",ow_db_callback_equip_agent),
@@ -3583,19 +3596,941 @@ mission_templates = [
 			(display_message,"@i am the spawned agent"),
 
 		(try_end),
-    #conquest
+
+	
     ]),
     (ti_after_mission_start, 0, 0, [],
     [
         (assign, "$g_multiplayer_ready_for_spawning_agent", 1),
+		
+		#conquest
+		(call_script, "script_determine_team_flags", 0),
+         (call_script, "script_determine_team_flags", 1),         
+         (set_spawn_effector_scene_prop_kind, 0, "$team_1_flag_scene_prop"), #during this mission, agents of "team 0" will try to spawn around scene props with kind equal to $team_1_flag_scene_prop
+         (set_spawn_effector_scene_prop_kind, 1, "$team_2_flag_scene_prop"), #during this mission, agents of "team 1" will try to spawn around scene props with kind equal to $team_2_flag_scene_prop
+         
+         (scene_prop_get_num_instances, ":num_instances_of_red_headquarters_flag", "spr_headquarters_flag_red"),
+         (scene_prop_get_num_instances, ":num_instances_of_blue_headquarters_flag", "spr_headquarters_flag_blue"),
+         (scene_prop_get_num_instances, ":num_instances_of_gray_headquarters_flag", "spr_headquarters_flag_gray"),  
+         (try_begin),
+           (multiplayer_is_server),
+
+           (assign, "$g_multiplayer_ready_for_spawning_agent", 1),
+         
+           (assign, "$g_number_of_flags", 0),
+         
+           #place base flags
+#           (entry_point_get_position, pos1, multi_base_point_team_1),
+#           (entry_point_get_position, pos3, multi_base_point_team_1),
+
+#           (set_spawn_position, pos3),
+#           (spawn_scene_prop, "spr_headquarters_pole_code_only", 0),           
+#           (set_spawn_position, pos3),
+#           (spawn_scene_prop, "$team_1_flag_scene_prop", 0),           
+#           (set_spawn_position, pos3),
+#           (spawn_scene_prop, "$team_2_flag_scene_prop", 0),                    
+#           (set_spawn_position, pos3),
+#           (spawn_scene_prop, "spr_headquarters_flag_gray_code_only", 0),           
+         
+#           (store_add, ":cur_flag_slot", multi_data_flag_owner_begin, "$g_number_of_flags"),
+#           (troop_set_slot, "trp_multiplayer_data", ":cur_flag_slot", 0),
+#           (val_add, "$g_number_of_flags", 1),
+
+#           (entry_point_get_position, pos2, multi_base_point_team_2),
+#           (entry_point_get_position, pos3, multi_base_point_team_2),
+         
+#           (set_spawn_position, pos3),
+#           (spawn_scene_prop, "spr_headquarters_pole_code_only", 0),                    
+ #          (set_spawn_position, pos3),
+#           (spawn_scene_prop, "$team_1_flag_scene_prop", 0),                    
+#           (set_spawn_position, pos3),
+#           (spawn_scene_prop, "$team_2_flag_scene_prop", 0),                    
+#           (set_spawn_position, pos3), 
+#           (spawn_scene_prop, "spr_headquarters_flag_gray_code_only", 0),                    
+#           (store_add, ":cur_flag_slot", multi_data_flag_owner_begin, "$g_number_of_flags"),
+#           (troop_set_slot, "trp_multiplayer_data", ":cur_flag_slot", 0),
+#           (val_add, "$g_number_of_flags", 1),
+
+           (call_script,"script_multiplayer_initalise_flags_common"),
+           
+         (else_try),
+           #these three lines both used in calculation of $g_number_of_flags and below part removing of initially placed flags
+           #(assign, "$g_number_of_flags", 2),piluspalus CHANGE:
+           (assign, "$g_number_of_flags", 0),
+           (val_add, "$g_number_of_flags", ":num_instances_of_red_headquarters_flag"),
+           (val_add, "$g_number_of_flags", ":num_instances_of_blue_headquarters_flag"),
+           (val_add, "$g_number_of_flags", ":num_instances_of_gray_headquarters_flag"),         
+         (try_end),
+
+         #remove initially placed flags
+         (try_for_range, ":flag_no", 0, ":num_instances_of_red_headquarters_flag"),
+           (scene_prop_get_instance, ":flag_id", "spr_headquarters_flag_red", ":flag_no"),
+           (scene_prop_set_visibility, ":flag_id", 0),
+         (try_end),
+         (try_for_range, ":flag_no", 0, ":num_instances_of_blue_headquarters_flag"),
+           (scene_prop_get_instance, ":flag_id", "spr_headquarters_flag_blue", ":flag_no"),
+           (scene_prop_set_visibility, ":flag_id", 0),
+         (try_end),
+         (try_for_range, ":flag_no", 0, ":num_instances_of_gray_headquarters_flag"),
+           (scene_prop_get_instance, ":flag_id", "spr_headquarters_flag_gray", ":flag_no"),
+           (scene_prop_set_visibility, ":flag_id", 0),
+         (try_end),
+
+         (try_for_range, ":flag_no", 0, "$g_number_of_flags"),
+           (store_add, ":cur_flag_owned_seconds_counts_slot", multi_data_flag_owned_seconds_begin, ":flag_no"),
+           (troop_set_slot, "trp_multiplayer_data", ":cur_flag_owned_seconds_counts_slot", 0),
+         (try_end),
+
+         (call_script, "script_initialize_all_scene_prop_slots"),
+         
+         (call_script, "script_multiplayer_move_moveable_objects_initial_positions"),
+         #MM
+         (call_script, "script_multiplayer_mm_after_mission_start_common"),
     ]),
     (ti_before_mission_start, 0, 0, [],
     [
         (assign, "$g_horses_are_avaliable", 1),
-        (assign,"$g_multiplayer_game_type",multiplayer_game_type_team_deathmatch),
-    ]),
+		
+		#conquest
+		(assign, "$g_multiplayer_game_type", multiplayer_game_type_headquarters),
+         (call_script, "script_multiplayer_server_before_mission_start_common"),
+         
+         (store_mul, ":initial_hq_score", "$g_multiplayer_game_max_points", 10000),
+         
+         (assign, "$g_score_team_1", ":initial_hq_score"),
+         (assign, "$g_score_team_2", ":initial_hq_score"),
+         
+         (try_begin),
+           (scene_prop_get_num_instances, ":num_instances", "spr_mm_additional_conquest_points"),
+           (gt,":num_instances",0),
+           (scene_prop_get_instance,":instance_id","spr_mm_additional_conquest_points",0),
+           (prop_instance_get_variation_id, ":team_no", ":instance_id"),
+           (is_between,":team_no",0,2),
+           (prop_instance_get_variation_id_2, ":extra_points", ":instance_id"), #In display score
+           (gt,":extra_points",0),
+           (store_sqrt,":extra_points_multiplier","$g_multiplayer_game_max_points"), #More than 300 max points give a minor increase, lower gives a minor decrease
+           (val_mul,":extra_points_multiplier",2),
+           (val_sub,":extra_points_multiplier",34),
+           (val_add,":extra_points_multiplier","$g_multiplayer_point_gained_from_flags"), #The % Points gained from flags directly affects the additional score
+           (val_mul,":extra_points_multiplier",100),  #Default = 10000, in real score.
+           (val_mul,":extra_points",":extra_points_multiplier"),
+           (try_begin),
+             (eq,":team_no",0),
+             (val_add, "$g_score_team_1", ":extra_points"),
+           (else_try),
+             (eq,":team_no",1),
+             (val_add, "$g_score_team_2", ":extra_points"),
+           (try_end),
+         (try_end),
 
-]),
+         (try_for_range, ":cur_flag_slot", multi_data_flag_owner_begin, multi_data_flag_owner_end),
+           (troop_set_slot, "trp_multiplayer_data", ":cur_flag_slot", -1),
+         (try_end),
+           
+         (try_begin),
+           (multiplayer_is_server),
+           (try_for_range, ":cur_flag_slot", multi_data_flag_pull_code_begin, multi_data_flag_pull_code_end),
+             (troop_set_slot, "trp_multiplayer_data", ":cur_flag_slot", -1),
+           (try_end),
+         (try_end),
+
+         (call_script, "script_multiplayer_init_mission_variables"),
+
+         (try_begin),
+           (multiplayer_is_server),
+           (team_set_score, 0, "$g_multiplayer_game_max_points"),
+           (team_set_score, 1, "$g_multiplayer_game_max_points"),
+         (try_end),
+         
+         #MM
+         (assign,"$g_conquest_map_end_confirm",0),
+         (call_script, "script_multiplayer_mm_before_mission_start_common"),
+    ]),
+	
+	(ti_on_multiplayer_mission_end, 0, 0, [],
+       [
+         (neg|multiplayer_is_dedicated_server),
+         (assign, "$g_multiplayer_stats_chart_opened_manually", 0),
+         (start_presentation, "prsnt_multiplayer_stats_chart"),
+         ]),
+    (ti_on_agent_killed_or_wounded, 0, 0, [],
+       [
+         (store_trigger_param_1, ":dead_agent_no"), 
+         (store_trigger_param_2, ":killer_agent_no"),
+         (call_script, "script_multiplayer_server_on_agent_killed_or_wounded_common", ":dead_agent_no", ":killer_agent_no"),
+
+         #adding 1 score points to killer agent's team. (special for "headquarters" and "team deathmatch" mod)
+         (try_begin),
+           (agent_is_active,":dead_agent_no"),
+           (agent_is_active,":killer_agent_no"),
+           (agent_is_human, ":dead_agent_no"),
+           (agent_is_human, ":killer_agent_no"),
+           (agent_get_team, ":killer_agent_team", ":killer_agent_no"),
+           (lt, ":killer_agent_team", multi_team_spectator), #0 or 1 is ok
+           (agent_get_team, ":dead_agent_team", ":dead_agent_no"),
+           (lt, ":dead_agent_team", multi_team_spectator), #0 or 1 is ok
+           
+           (team_get_score, ":team_score", ":dead_agent_team"),
+           (val_sub, ":team_score", 1),
+           (call_script, "script_team_set_score", ":dead_agent_team", ":team_score"),
+           #(assign,"$g_team_score_is_changed",1),
+           
+           # The rest only for da server
+           (multiplayer_is_server),
+           
+           (try_begin),
+             (eq, ":dead_agent_team", 0),
+             (val_sub, "$g_score_team_1", 10000), 
+           (else_try),
+             (val_sub, "$g_score_team_2", 10000), 
+           (try_end),
+           
+           # Vincenzo begin
+           (agent_get_player_id, ":dead_player", ":dead_agent_no"),
+           (player_is_active,":dead_player"),
+           
+           (store_mission_timer_a, ":current_time"),
+           (store_sub, ":respawntime", ":current_time", "$g_hq_last_spawn_wave"),
+           (store_sub, ":respawntime_left", "$g_multiplayer_respawn_period", ":respawntime"),
+           
+           (multiplayer_send_int_to_player, ":dead_player", multiplayer_event_return_respawn_period, ":respawntime_left"),
+           # Vincenzo end
+         (try_end),
+	]),
+	
+	
+	(1, 0, 0, [(multiplayer_is_server),],
+      [
+        #trigger for (a) counting seconds of flags being owned by their owners & (b) to calculate seconds past after that flag's pull message has shown          
+        (try_for_range, ":flag_no", 0, "$g_number_of_flags"),
+          #part a: counting seconds of flags being owned by their owners
+          (store_add, ":cur_flag_owned_seconds_counts_slot", multi_data_flag_owned_seconds_begin, ":flag_no"),
+          (troop_get_slot, ":cur_flag_owned_seconds", "trp_multiplayer_data", ":cur_flag_owned_seconds_counts_slot"),
+          (val_add, ":cur_flag_owned_seconds", 1),
+          (troop_set_slot, "trp_multiplayer_data", ":cur_flag_owned_seconds_counts_slot", ":cur_flag_owned_seconds"),
+          #part b: to calculate seconds past after that flag's pull message has shown
+          (store_add, ":cur_flag_pull_code_slot", multi_data_flag_pull_code_begin, ":flag_no"),
+          (troop_get_slot, ":cur_flag_pull_code", "trp_multiplayer_data", ":cur_flag_pull_code_slot"),
+          (store_mod, ":cur_flag_pull_message_seconds_past", ":cur_flag_pull_code", 100),
+          (try_begin),
+            (ge, ":cur_flag_pull_code", 100),
+            (lt, ":cur_flag_pull_message_seconds_past", 25),
+            (val_add, ":cur_flag_pull_code", 1),
+            (troop_set_slot, "trp_multiplayer_data", ":cur_flag_pull_code_slot", ":cur_flag_pull_code"),
+          (try_end),
+        (try_end),        
+      ]),               
+      # Vincenzo change seconds
+      (2, 0, 0, [(multiplayer_is_server),], #if this trigger takes lots of time in the future and make server machine runs headqurters mod
+                    #very slow with lots of players make period of this trigger 1 seconds, but best is 0. Currently
+                    #we are testing this mod with few players and no speed program occured.
+      [
+        #main trigger which controls which agent is moving/near which flag.
+        (try_for_range, ":flag_no", 0, "$g_number_of_flags"),
+          (store_add, ":cur_flag_owner_counts_slot", multi_data_flag_players_around_begin, ":flag_no"),
+          (troop_get_slot, ":current_owner_code", "trp_multiplayer_data", ":cur_flag_owner_counts_slot"),
+          (store_div, ":old_team_1_agent_count", ":current_owner_code", 100),
+          (store_mod, ":old_team_2_agent_count", ":current_owner_code", 100),
+        
+          (assign, ":number_of_agents_around_flag_team_1", 0),
+          (assign, ":number_of_agents_around_flag_team_2", 0),
+
+          (scene_prop_get_instance, ":pole_id", "spr_headquarters_pole_code_only", ":flag_no"), 
+          (prop_instance_get_position, pos0, ":pole_id"), #pos0 holds pole position.
+
+          # REMOVED TO ALLOW BOTS TO CAPTURE FLAGS
+          #(try_for_range, ":player_no", 0, ":num_players"),
+          #  (player_is_active, ":player_no"),
+          #  (player_get_agent_id, ":cur_agent", ":player_no"),
+          #  (ge, ":cur_agent", 0),
+          (try_for_agents,":cur_agent"),
+            (agent_is_active,":cur_agent"),
+            (agent_is_human,":cur_agent"),
+            #/Added above
+            (agent_is_alive, ":cur_agent"),
+            (agent_get_team, ":cur_agent_team", ":cur_agent"),
+            (agent_get_position, pos1, ":cur_agent"), #pos1 holds agent's position.
+            (get_sq_distance_between_positions, ":squared_dist", pos0, pos1),
+            (get_sq_distance_between_position_heights, ":squared_height_dist", pos0, pos1),
+            (val_add, ":squared_dist", ":squared_height_dist"),
+            # Vincenzo begin
+            (lt, ":squared_dist", multi_headquarters_max_distance_sq_to_raise_flags + 900),
+            # Vincenzo end
+            (try_begin),
+              (eq, ":cur_agent_team", 0),
+              (val_add, ":number_of_agents_around_flag_team_1", 1),
+            (else_try),
+              (eq, ":cur_agent_team", 1),
+              (val_add, ":number_of_agents_around_flag_team_2", 1),
+            (try_end),
+          (try_end),
+
+          (try_begin),
+            (this_or_next|neq, ":old_team_1_agent_count", ":number_of_agents_around_flag_team_1"),
+            (neq, ":old_team_2_agent_count", ":number_of_agents_around_flag_team_2"),
+
+            (store_add, ":cur_flag_owner_slot", multi_data_flag_owner_begin, ":flag_no"),
+            (troop_get_slot, ":cur_flag_owner", "trp_multiplayer_data", ":cur_flag_owner_slot"),
+
+            (store_add, ":cur_flag_pull_code_slot", multi_data_flag_pull_code_begin, ":flag_no"),
+            (troop_get_slot, ":cur_flag_pull_code", "trp_multiplayer_data", ":cur_flag_pull_code_slot"),
+            (store_mod, ":cur_flag_pull_message_seconds_past", ":cur_flag_pull_code", 100),
+            (store_div, ":cur_flag_puller_team_last", ":cur_flag_pull_code", 100),
+
+            (try_begin),        
+              (assign, ":continue", 0),
+              (try_begin),
+                (neq, ":cur_flag_owner", 1),
+                (eq, ":old_team_1_agent_count", 0),
+                (gt, ":number_of_agents_around_flag_team_1", 0),
+                (eq, ":number_of_agents_around_flag_team_2", 0),
+                (assign, ":puller_team", 1),
+                (assign, ":continue", 1),
+              (else_try),
+                (neq, ":cur_flag_owner", 2),
+                (eq, ":old_team_2_agent_count", 0),
+                (eq, ":number_of_agents_around_flag_team_1", 0),
+                (gt, ":number_of_agents_around_flag_team_2", 0),
+                (assign, ":puller_team", 2),
+                (assign, ":continue", 1),
+              (try_end),
+ 
+              (eq, ":continue", 1),
+
+              (store_mul, ":puller_team_multiplied_by_100", ":puller_team", 100),
+              (troop_set_slot, "trp_multiplayer_data", ":cur_flag_pull_code_slot", ":puller_team_multiplied_by_100"),
+
+              (this_or_next|neq, ":cur_flag_puller_team_last", ":puller_team"),
+              (ge, ":cur_flag_pull_message_seconds_past", 25),
+
+              (store_mul, ":flag_code", ":puller_team", 100),
+              (val_add, ":flag_code", ":flag_no"),
+              #for only server itself-----------------------------------------------------------------------------------------------
+              (call_script, "script_show_multiplayer_message", multiplayer_message_type_flag_is_pulling, ":flag_code"), 
+              #for only server itself-----------------------------------------------------------------------------------------------     
+              (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
+                (player_is_active, ":player_no"),
+                (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_show_multiplayer_message, multiplayer_message_type_flag_is_pulling, ":flag_code"),
+              (try_end),
+              
+              # Vincenzo begin
+              (this_or_next|eq, ":flag_no", 0),
+              (eq, ":flag_no", 1),
+              
+              (assign, ":cur_faction", 0),
+              (try_begin),
+                (eq, ":flag_no", 0),
+                (assign, ":cur_faction", "$g_multiplayer_team_1_faction"),
+                (assign, ":cur_faction_nr", 1),
+                #(str_store_faction_name, s1, "$g_multiplayer_team_1_faction"), # faction 1
+              (else_try),
+                (assign, ":cur_faction", "$g_multiplayer_team_2_faction"),
+                (assign, ":cur_faction_nr", 2),
+                #(str_store_faction_name, s1, "$g_multiplayer_team_2_faction"), # faction 2
+              (try_end),
+              
+              (val_sub, ":cur_faction", "fac_britain"),
+              (val_add, ":cur_faction", "str_kingdom_1_adjective"),
+              (str_store_string, s1, ":cur_faction"),
+              
+              (try_begin),
+                (eq, ":puller_team", ":cur_faction_nr"),
+                (str_store_string, s4, "str_server_hq_base_retake_s1"),
+              (else_try),
+                (str_store_string, s4, "str_server_hq_base_attack_s1"),
+              (try_end),
+              
+              (call_script, "script_multiplayer_broadcast_message"), # Broadcast message
+              # Vincenzo end
+            (try_end),
+
+            (try_begin),
+              (store_mul, ":current_owner_code", ":number_of_agents_around_flag_team_1", 100),
+              (val_add, ":current_owner_code", ":number_of_agents_around_flag_team_2"),        
+              (troop_set_slot, "trp_multiplayer_data", ":cur_flag_owner_counts_slot", ":current_owner_code"),
+
+              #for only server itself-----------------------------------------------------------------------------------------------
+              (call_script, "script_set_num_agents_around_flag", ":flag_no", ":current_owner_code"),
+              #for only server itself----------------------------
+              (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
+                (player_is_active, ":player_no"),
+                (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_set_num_agents_around_flag, ":flag_no", ":current_owner_code"),
+              (try_end),
+            (try_end),
+          (try_end),
+        (try_end),
+
+        (try_for_range, ":flag_no", 0, "$g_number_of_flags"),
+          (assign, ":new_flag_owner", -1),
+
+          (scene_prop_get_instance, ":pole_id", "spr_headquarters_pole_code_only", ":flag_no"), 
+          (prop_instance_get_position, pos0, ":pole_id"), #pos0 holds pole position.            
+
+          (store_add, ":cur_flag_owner_slot", multi_data_flag_owner_begin, ":flag_no"),
+          (troop_get_slot, ":cur_flag_owner", "trp_multiplayer_data", ":cur_flag_owner_slot"),
+
+          (try_begin),
+            (try_begin),
+              (scene_prop_get_instance, ":flag_id", "$team_1_flag_scene_prop", ":flag_no"),
+              (scene_prop_get_visibility, ":flag_visibility", ":flag_id"),
+              (assign, ":cur_shown_flag", 1),
+              (eq, ":flag_visibility", 0),
+              (scene_prop_get_instance, ":flag_id", "$team_2_flag_scene_prop", ":flag_no"),
+              (scene_prop_get_visibility, ":flag_visibility", ":flag_id"),
+              (assign, ":cur_shown_flag", 2),
+              (eq, ":flag_visibility", 0),                    
+              (scene_prop_get_instance, ":flag_id", "spr_headquarters_flag_gray_code_only", ":flag_no"),
+              (scene_prop_get_visibility, ":flag_visibility", ":flag_id"),        
+              (assign, ":cur_shown_flag", 0),
+            (try_end),
+
+            #flag_id holds shown flag after this point
+            (prop_instance_get_position, pos1, ":flag_id"), #pos1 holds gray/red/blue (current shown) flag position.
+
+            (try_begin),
+              (get_sq_distance_between_positions, ":squared_dist", pos0, pos1),        
+              # Vincenzo begin              
+              (lt, ":squared_dist", multi_headquarters_distance_sq_to_change_flag + 500), #if distance is less than 2 meters
+              # Vincenzo end
+              (store_add, ":cur_flag_players_around_slot", multi_data_flag_players_around_begin, ":flag_no"),
+              (troop_get_slot, ":cur_flag_players_around", "trp_multiplayer_data", ":cur_flag_players_around_slot"),
+              (store_div, ":number_of_agents_around_flag_team_1", ":cur_flag_players_around", 100),
+              (store_mod, ":number_of_agents_around_flag_team_2", ":cur_flag_players_around", 100),
+
+              (try_begin),
+                (gt, ":number_of_agents_around_flag_team_1", 0),
+                (eq, ":number_of_agents_around_flag_team_2", 0),
+                (assign, ":new_flag_owner", 0),
+                (assign, ":new_shown_flag", 1),
+              (else_try),
+                (eq, ":number_of_agents_around_flag_team_1", 0),
+                (gt, ":number_of_agents_around_flag_team_2", 0),
+                (assign, ":new_flag_owner", 0),
+                (assign, ":new_shown_flag", 2),
+              (else_try),
+                (eq, ":number_of_agents_around_flag_team_1", 0),
+                (eq, ":number_of_agents_around_flag_team_2", 0),
+                (neq, ":cur_shown_flag", 0),
+                (assign, ":new_flag_owner", 0),
+                (assign, ":new_shown_flag", 0),
+              (try_end),
+            (else_try),
+              (neq, ":cur_flag_owner", ":cur_shown_flag"),      
+              (get_sq_distance_between_positions, ":squared_dist", pos0, pos1),        
+              (ge, ":squared_dist", multi_headquarters_distance_sq_to_set_flag), #if distance is more equal than 9 meters
+
+              (store_add, ":cur_flag_players_around_slot", multi_data_flag_players_around_begin, ":flag_no"),
+              (troop_get_slot, ":cur_flag_players_around", "trp_multiplayer_data", ":cur_flag_players_around_slot"),
+              (store_div, ":number_of_agents_around_flag_team_1", ":cur_flag_players_around", 100),
+              (store_mod, ":number_of_agents_around_flag_team_2", ":cur_flag_players_around", 100),
+
+              (try_begin),
+                (eq, ":cur_shown_flag", 1),
+                (assign, ":new_flag_owner", 1),
+                (assign, ":new_shown_flag", 1),
+              (else_try),
+                (eq, ":cur_shown_flag", 2),
+                (assign, ":new_flag_owner", 2),
+                (assign, ":new_shown_flag", 2),
+              (try_end),        
+            (try_end),
+          (try_end),
+        
+          (try_begin),
+            (ge, ":new_flag_owner", 0),
+            (this_or_next|neq, ":new_flag_owner", ":cur_flag_owner"),
+            (neq, ":cur_shown_flag", ":new_shown_flag"),
+
+            (try_begin),
+              (neq, ":cur_flag_owner", 0),
+              (eq, ":new_flag_owner", 0),
+              (try_begin),
+                (eq, ":cur_flag_owner", 1),
+                (assign, ":neutralizer_team", 2),
+              (else_try),
+                (eq, ":cur_flag_owner", 2),
+                (assign, ":neutralizer_team", 1),
+              (try_end),
+              (store_mul, ":flag_code", ":neutralizer_team", 100),
+              (val_add, ":flag_code", ":flag_no"),
+              #for only server itself-----------------------------------------------------------------------------------------------
+              (call_script, "script_show_multiplayer_message", multiplayer_message_type_flag_neutralized, ":flag_code"), 
+              #for only server itself-----------------------------------------------------------------------------------------------       
+              (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
+                (player_is_active, ":player_no"),
+                (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_show_multiplayer_message, multiplayer_message_type_flag_neutralized, ":flag_code"),
+              (try_end),              
+            (try_end),
+        
+            (try_begin),
+              (neq, ":cur_flag_owner", ":new_flag_owner"),
+              (neq, ":new_flag_owner", 0),
+              (store_mul, ":flag_code", ":new_flag_owner", 100),
+              (val_add, ":flag_code", ":flag_no"),
+              #for only server itself-----------------------------------------------------------------------------------------------
+              (call_script, "script_show_multiplayer_message", multiplayer_message_type_flag_captured, ":flag_code"), 
+              #for only server itself-----------------------------------------------------------------------------------------------         
+              (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
+                (player_is_active, ":player_no"),
+                (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_show_multiplayer_message, multiplayer_message_type_flag_captured, ":flag_code"),
+              (try_end),              
+            (try_end),
+
+            #for only server itself-----------------------------------------------------------------------------------------------
+            (call_script, "script_set_num_agents_around_flag", ":flag_no", ":cur_flag_players_around"),
+            #for only server itself-----------------------------------------------------------------------------------------------
+            #(assign, ":number_of_total_players", 0),
+            (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
+              (player_is_active, ":player_no"),
+              (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_set_num_agents_around_flag, ":flag_no", ":cur_flag_players_around"),
+              #(val_add, ":number_of_total_players", 1),
+            (try_end),
+
+            (store_mul, ":owner_code", ":new_flag_owner", 100),
+            (val_add, ":owner_code", ":new_shown_flag"),
+            #for only server itself-----------------------------------------------------------------------------------------------
+            (call_script, "script_change_flag_owner", ":flag_no", ":owner_code"),
+            #for only server itself-----------------------------------------------------------------------------------------------
+            (try_for_range, ":player_no", 1, multiplayer_player_loops_end), #0 is server so starting from 1
+              (player_is_active, ":player_no"),
+              (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_change_flag_owner, ":flag_no", ":owner_code"),          
+            (try_end),
+
+            (try_begin),
+              (neq, ":new_flag_owner", 0),
+
+              (try_begin),
+                (eq, ":new_flag_owner", 1),
+                (assign, ":number_of_players_around_flag", ":number_of_agents_around_flag_team_1"),
+              (else_try),
+                (assign, ":number_of_players_around_flag", ":number_of_agents_around_flag_team_2"),
+              (try_end),
+
+              (store_add, ":cur_flag_owned_seconds_counts_slot", multi_data_flag_owned_seconds_begin, ":flag_no"),
+              (troop_get_slot, ":current_flag_owned_seconds", "trp_multiplayer_data", ":cur_flag_owned_seconds_counts_slot"),              
+              (troop_set_slot, "trp_multiplayer_data", ":cur_flag_owned_seconds_counts_slot", 0),
+
+              (val_min, ":current_flag_owned_seconds", 360), #360 seconds is max time for hq, this will limit money awarding by (180 x total_number_of_players)
+
+              (try_begin),                                # MM - Changed scoring to different values to always award players with score points for capturing flags
+                (le, ":number_of_players_around_flag", 2), # If 1 or 2 players, give 3 points each
+                (assign, ":score_award_per_player", 3),
+              (else_try),
+                (le, ":number_of_players_around_flag", 5), # If 3, 4 or 5 players, give 2 points each
+                (assign, ":score_award_per_player", 2),
+              (else_try),
+                (assign, ":score_award_per_player", 1), # Else give 1 point no matter how many players are capturing the flag
+              (try_end),
+
+              (prop_instance_get_position, pos0, ":pole_id"),
+              
+              (try_for_range, ":player_no", "$g_player_loops_begin", multiplayer_player_loops_end),
+                (player_is_active, ":player_no"),
+                (player_get_agent_id, ":cur_agent", ":player_no"),
+                (agent_is_active,":cur_agent"),
+                (agent_get_team, ":cur_agent_team", ":cur_agent"),
+                (val_add, ":cur_agent_team", 1),
+                (eq, ":cur_agent_team", ":new_flag_owner"),
+                
+                (agent_get_position, pos1, ":cur_agent"),  
+                (get_sq_distance_between_positions, ":squared_dist", pos0, pos1),
+                (get_sq_distance_between_position_heights, ":squared_height_dist", pos0, pos1),
+                (val_add, ":squared_dist", ":squared_height_dist"),
+                # Vincenzo begin
+                (lt, ":squared_dist", multi_headquarters_max_distance_sq_to_raise_flags + 900),        
+                # Vincenzo end                
+                (player_get_score, ":player_score", ":player_no"), #give score to player which helped flag to be owned by new_flag_owner team 
+                (val_add, ":player_score", ":score_award_per_player"),
+                (player_set_score, ":player_no", ":player_score"),                            
+              (try_end),
+            (try_end),
+          (try_end),
+        (try_end),
+        ]),
+
+      (1, 0, 0, [(multiplayer_is_server),],
+       [
+        #trigger for increasing score in each second.
+        
+        #First check if their are actually any players. 
+        #Instead of doing that in the middle of the code, and do nothing if there aren't...
+        (assign, ":any_active_players", 0),
+        (assign, ":end_cond", multiplayer_player_loops_end),
+        (try_for_range, ":player_no", "$g_player_loops_begin", ":end_cond"),
+          (player_is_active, ":player_no"),
+          (assign, ":any_active_players", 1),
+          (assign, ":end_cond", 0),
+        (try_end),
+        (eq, ":any_active_players", 1),
+        #So there are players, now we can continue calculating score
+          
+        (assign, ":number_of_team_1_flags", 0),
+        (assign, ":number_of_team_2_flags", 0),
+
+        #(assign, ":owned_flag_value", 0),        
+        (assign, ":not_owned_flag_value", 0),
+        
+        (try_for_range, ":flag_no", 0, "$g_number_of_flags"),
+          (store_add, ":cur_flag_owner_slot", multi_data_flag_owner_begin, ":flag_no"),
+          (troop_get_slot, ":cur_flag_owner", "trp_multiplayer_data", ":cur_flag_owner_slot"),
+
+          (scene_prop_get_instance, ":flag_of_team_1", "$team_1_flag_scene_prop", ":flag_no"),
+          (scene_prop_get_instance, ":flag_of_team_2", "$team_2_flag_scene_prop", ":flag_no"),
+        
+          (try_begin), #Team bases are worth 2 flags
+            (this_or_next|eq, "$g_base_flag_team_1", ":flag_of_team_1"),
+            (eq, "$g_base_flag_team_2", ":flag_of_team_2"),
+            (assign, ":flag_value", 2),
+          (else_try), #Normal flags are worth, well, 1 flag...
+            (assign, ":flag_value", 1),
+          (try_end),
+        
+          (try_begin),
+            (eq, ":cur_flag_owner", 1),
+            (val_add, ":number_of_team_1_flags", ":flag_value"),
+            #(val_add, ":owned_flag_value", ":flag_value"),
+          (else_try),
+            (eq, ":cur_flag_owner", 2),
+            (val_add, ":number_of_team_2_flags", ":flag_value"),
+            #(val_add, ":owned_flag_value", ":flag_value"),
+          (else_try),
+            (val_add, ":not_owned_flag_value", ":flag_value"),
+          (try_end),
+        (try_end),
+        
+        # Vincenzo begin
+        (try_begin),  # No flags for either team?
+          (this_or_next|eq, ":number_of_team_1_flags", 0),
+          (eq, ":number_of_team_2_flags", 0),
+          
+          (try_begin),
+            (eq, ":number_of_team_1_flags", 0),
+            (assign,":team_with_no_flags",0),
+          (else_try),
+            (eq, ":number_of_team_2_flags", 0),
+            (assign,":team_with_no_flags",1),
+          (try_end),
+          
+          #Checking if team with no flags has alive players
+          (assign, ":end_cond",multiplayer_player_loops_end),
+          (assign, ":at_least_one_alive_of_losing", 0),
+          (try_for_range, ":player_no", "$g_player_loops_begin", ":end_cond"),
+            (player_is_active, ":player_no"),
+            (player_get_team_no, ":player_team", ":player_no"),
+            
+            (eq,":player_team",":team_with_no_flags"),
+            
+            (player_get_agent_id, ":player_agent_id", ":player_no"),
+            (gt, ":player_agent_id", -1),
+            (agent_is_active,":player_agent_id"),
+            (agent_is_alive, ":player_agent_id"),
+            (assign, ":at_least_one_alive_of_losing", 1), #At least one alive
+            (assign, ":end_cond", 0),
+          (try_end),
+          
+          (eq, ":at_least_one_alive_of_losing", 0), #No flags and no one is alive - the team loses
+          (try_begin),
+            (eq, ":team_with_no_flags", 0),
+            (assign, "$g_score_team_1", 0),
+          (else_try),
+            (eq, ":team_with_no_flags", 1),
+            (assign, "$g_score_team_2", 0),
+          (try_end),
+        (else_try), #Both teams have flags and/or players left
+          (try_begin), #Calculate team 1 score loss
+            (gt, "$g_score_team_1", 200000), #Once team reaches 20 points, stop auto-lowering score
+            
+            (store_mul,":flag_value_multiplier",50,"$g_multiplayer_point_gained_from_flags"), #Default: 50x100 = 5000
+            (store_mul,":allied_flag_weight",":number_of_team_1_flags",":flag_value_multiplier"),
+            (store_mul,":enemy_flag_weight",":number_of_team_2_flags",":flag_value_multiplier"),
+            (store_mul,":neutral_flag_weight",":not_owned_flag_value",":flag_value_multiplier"),
+            
+            #Formula: (their_flag_weight - our_flag_weight) / 3 + neutral_flag_weight / 20
+            (store_sub,":sub_score",":enemy_flag_weight",":allied_flag_weight"),
+            (val_div,":sub_score",3),
+            (store_div,":neutral_flag_weight",":neutral_flag_weight",20),
+            (val_add,":sub_score",":neutral_flag_weight"),
+            
+            (val_max,":sub_score",0),#Can't get gain points...
+            
+            (val_sub, "$g_score_team_1", ":sub_score"), #And subtract the value from our score
+          (try_end),
+          
+          (try_begin), #Calculate team 2 score loss
+            (gt, "$g_score_team_2", 200000), #Once team reaches 20 points, stop auto-lowering score
+            
+            (store_mul,":flag_value_multiplier",50,"$g_multiplayer_point_gained_from_flags"), #Default: 50x100 = 5000
+            (store_mul,":allied_flag_weight",":number_of_team_2_flags",":flag_value_multiplier"),
+            (store_mul,":enemy_flag_weight",":number_of_team_1_flags",":flag_value_multiplier"),
+            (store_mul,":neutral_flag_weight",":not_owned_flag_value",":flag_value_multiplier"),
+            
+            #Formula: (their_flag_weight - our_flag_weight) / 3 + neutral_flag_weight / 20
+            (store_sub,":sub_score",":enemy_flag_weight",":allied_flag_weight"),
+            (val_div,":sub_score",3),
+            (store_div,":neutral_flag_weight",":neutral_flag_weight",20),
+            (val_add,":sub_score",":neutral_flag_weight"),
+            
+            (val_max,":sub_score",0),#Can't get gain points...
+            
+            (val_sub, "$g_score_team_2", ":sub_score"), #And subtract the value from our score
+          (try_end),
+        (try_end),
+        
+        #Transfering real score into display score:
+        (store_div, ":team_new_score_1", "$g_score_team_1", 10000),
+        (try_begin),
+          (lt, ":team_new_score_1", 0),
+          (assign, ":team_new_score_1", 0),
+        (try_end),
+        (store_div, ":team_new_score_2", "$g_score_team_2", 10000),
+        (try_begin),
+          (lt, ":team_new_score_2", 0),
+          (assign, ":team_new_score_2", 0),
+        (try_end),
+        
+        #Assigning new scores:
+        (team_get_score, ":team_score_1", 0),
+        (team_get_score, ":team_score_2", 1),
+        (try_begin),
+          (this_or_next|neq, ":team_new_score_1", ":team_score_1"),
+          (neq, ":team_new_score_2", ":team_score_2"), # Value is changed..
+           
+          (call_script, "script_team_set_score", 0, ":team_new_score_1"),
+          (call_script, "script_team_set_score", 1, ":team_new_score_2"),
+          (try_for_range, ":player_no", 1, multiplayer_player_loops_end),
+            (player_is_active, ":player_no"),
+            (multiplayer_send_2_int_to_player, ":player_no", multiplayer_event_set_team_score, ":team_new_score_1", ":team_new_score_2"),
+          (try_end),
+        (try_end),
+      ]),
+
+
+      (1, 0, 0, [(multiplayer_is_server),],
+       [
+         # Vincenzo begin
+         (store_mission_timer_a, ":current_time"),
+         (store_sub, ":respawntime", ":current_time", "$g_hq_last_spawn_wave"),
+         (display_message,"@respawn?"),
+         (this_or_next|le, "$g_hq_last_spawn_wave", "$g_multiplayer_respawn_period"),
+         (gt, ":respawntime", "$g_multiplayer_respawn_period"),
+         (display_message,"@respawning agent!!"),
+         (assign,":flags_team_1",1),
+         (assign,":flags_team_2",11),
+         (assign,":end_cond","$g_number_of_flags"),
+         (try_for_range,":flag_no",0,":end_cond"),
+            (store_add, ":cur_flag_owner_slot", multi_data_flag_owner_begin, ":flag_no"),
+            (troop_get_slot, ":cur_flag_owner", "trp_multiplayer_data", ":cur_flag_owner_slot"),
+            (try_begin),
+              (eq, ":cur_flag_owner", 1), # team 1
+              (troop_set_slot, "trp_flags_owned_dummy", ":flags_team_1", ":flag_no"), # Store in slot number the flag_no
+              (val_add,":flags_team_1",1),
+            (else_try),
+              (eq, ":cur_flag_owner", 2), # team 2
+              (troop_set_slot, "trp_flags_owned_dummy", ":flags_team_2", ":flag_no"), # Store in slot number the flag_no
+              (val_add,":flags_team_2",1),
+            (try_end),
+         (try_end),
+         
+         # Store team 1 spawns
+         (assign, ":entrypoints_team_1", 1),
+         (assign,":entrypoints_count_team_1",0),
+         (assign, ":end_cond", ":flags_team_1"),
+         (try_for_range,":flag_no",1,":end_cond"),
+           (troop_get_slot, ":cur_flag_id", "trp_flags_owned_dummy", ":flag_no"),
+           (call_script, "script_multiplayer_server_hq_get_entrypoints_for_flag",":cur_flag_id",":entrypoints_team_1"),
+           (assign, ":entrypoints_team_1", reg0),
+           (val_add, ":entrypoints_count_team_1", reg1),
+         (try_end),
+         
+         # Store team 2 spawns
+         (assign, ":entrypoints_team_2", 101),
+         (assign,":entrypoints_count_team_2",0),
+         (assign, ":end_cond", ":flags_team_2"),
+         (try_for_range, ":flag_no", 11, ":end_cond"),
+           (troop_get_slot, ":cur_flag_id", "trp_flags_owned_dummy", ":flag_no"),
+           (call_script, "script_multiplayer_server_hq_get_entrypoints_for_flag",":cur_flag_id",":entrypoints_team_2"),
+           (assign, ":entrypoints_team_2", reg0),
+           (val_add, ":entrypoints_count_team_2", reg1),
+         (try_end),
+         # Vincenzo end
+         
+         (try_for_range, ":player_no", "$g_player_loops_begin", multiplayer_player_loops_end),
+           (player_is_active, ":player_no"),
+           
+           #(assign,":not_selecting_flag",1),
+           #(try_begin),
+           #  (player_get_slot, ":player_join_time", ":player_no", slot_player_join_time),
+           #  (store_sub,":time_dif",":current_time",":player_join_time"),
+           #  (le,":time_dif",10), # first 10 seconds give a new player chance to select a flag.
+           #  (player_is_busy_with_menus, ":player_no"),
+           #  (assign,":not_selecting_flag",0),
+           #(try_end),
+           
+           #(eq,":not_selecting_flag",1), # always spawn since he might have the flag presentation open..
+           (neg|player_is_busy_with_menus, ":player_no"), #had enough of this retarded thing constantly spawning me as the wrong troop because I don't have time to change.
+
+           (player_get_team_no, ":player_team", ":player_no"), #if player is currently spectator do not spawn his agent
+           (lt, ":player_team", multi_team_spectator),
+
+           (player_get_troop_id, ":player_troop", ":player_no"), #if troop is not selected do not spawn his agent
+           (ge, ":player_troop", 0),
+
+           # Vincenzo begin
+           (assign, ":has_flags", 0),
+           (try_begin),
+             (eq, ":player_team", 0),
+             (assign, ":player_team_entrypoints", ":entrypoints_team_1"),
+             (assign, ":player_team_entrypoints_count", ":entrypoints_count_team_1"),
+             (assign, ":start_point", 1),
+             (try_begin),
+               (gt, ":flags_team_1", 1),
+               (assign, ":has_flags", 1),
+             (try_end),
+           (else_try),
+             (assign, ":player_team_entrypoints", ":entrypoints_team_2"),
+             (assign, ":player_team_entrypoints_count", ":entrypoints_count_team_2"),
+             (assign, ":start_point", 101),
+             (try_begin),
+               (gt, ":flags_team_2", 11),
+               (assign, ":has_flags", 1),
+             (try_end),
+           (try_end),
+           
+           (eq, ":has_flags", 1), # More then 0 flags are owned, if not stop trying to spawn this agent.
+           # Vincenzo end
+		   
+		  
+           
+           (player_get_agent_id, ":player_agent", ":player_no"),
+           (assign, ":spawn_new", 0),
+           (try_begin),
+             (player_get_slot, ":player_first_spawn", ":player_no", slot_player_first_spawn),
+             (eq, ":player_first_spawn", 1),
+             (assign, ":spawn_new", 0),#piluspalus set to 0
+             (player_set_slot, ":player_no", slot_player_first_spawn, 0),
+           (else_try),
+             (try_begin),
+               (lt, ":player_agent", 0),
+               (assign, ":spawn_new", 1),
+             (else_try),
+               (neg|agent_is_alive, ":player_agent"),
+             # Vincenzo begin
+               # (agent_get_time_elapsed_since_removed, ":elapsed_time", ":player_agent"),
+               # (gt, ":elapsed_time", "$g_multiplayer_respawn_period"),
+             # Vincenzo end
+               (assign, ":spawn_new", 1),
+             (try_end),             
+           (try_end),
+           (eq, ":spawn_new", 1),
+		   (display_message,"@equip agent"),
+
+           (call_script, "script_multiplayer_buy_agent_equipment", ":player_no"),
+         
+          
+           # Vincenzo begin
+           #(assign,":should_spawn",1),
+           (try_begin),
+             (gt,":player_team_entrypoints_count",0), # More then 0 entry points are found.
+             
+             (try_begin),
+               #(troop_get_slot,":value","trp_conquest_spawn_dummy",":player_no"),
+               (player_get_slot,":flag_id",":player_no",slot_player_selected_flag),
+               (store_add, ":cur_flag_slot", multi_data_flag_owner_begin, ":flag_id"),
+               (troop_get_slot, ":current_owner", "trp_multiplayer_data", ":cur_flag_slot"),
+               (store_add,":player_team_plus_1",":player_team",1),
+               
+               # (assign,reg4,":value"),
+               # (assign,reg3,":player_team_plus_1"),
+               # (assign,reg2,":current_owner"),
+               # (str_store_string,s4,"@Selected Flag Owner: {reg2} Player Team plus 1: {reg3} Flag value: {reg4}"),
+               # (call_script, "script_multiplayer_broadcast_message"),
+               
+               (eq,":player_team_plus_1",":current_owner"), # we have a flaggy for us selected =)
+               
+               (store_mul,":current_flag_slot",":flag_id",50),  # each 50 slots containt entry points for a flag.
+               (troop_get_slot, ":entry_point_count", "trp_entrypoints_per_flag_dummy", ":current_flag_slot"),
+               (val_add,":current_flag_slot",1),
+               (val_add,":entry_point_count",":current_flag_slot"),
+               #(val_add,":entry_point_count",1),
+               
+               (store_random_in_range, ":spawn_entry_no", ":current_flag_slot", ":entry_point_count"),
+               (troop_get_slot, ":entry_point", "trp_entrypoints_per_flag_dummy", ":spawn_entry_no"),
+               
+                # (assign,reg1,":flag_id"),
+                # (assign,reg2,":entry_point_count"),
+                # (assign,reg3,":spawn_entry_no"),
+                # (assign,reg4,":current_flag_slot"),
+                # (assign,reg5,":entry_point"),
+                # (str_store_string,s4,"@flag_id:{reg1}  current_flag_slot+1:{reg4}  entry_point_count:{reg2}  spawn_entry_no:{reg3} thats entry_point:{reg5}"),
+                # (call_script, "script_multiplayer_broadcast_message"),
+             (else_try),
+               (store_random_in_range, ":spawn_entry_no", ":start_point", ":player_team_entrypoints"),
+               (troop_get_slot, ":entry_point", "trp_entrypoints_dummy", ":spawn_entry_no"),
+             (try_end),
+             
+             (assign, reg0, ":entry_point"), # assign that bitch =)
+           (else_try), 
+              
+              #  (str_store_player_username, s9, ":player_no"),
+              # (assign, reg9, ":spawn_near_flag"),
+              # (str_store_string, s4, "@WARNING! NO ENTRY POINT FOUND FOR PLAYER: {s9}"),
+              # (call_script, "script_multiplayer_broadcast_message"), # Broadcast message
+             (troop_get_inventory_slot, ":has_item", ":player_troop", ek_horse),
+             (try_begin),
+               (ge, ":has_item", 0),
+               (assign, ":is_horseman", 1),
+             (else_try),
+               (assign, ":is_horseman", 0),
+             (try_end),
+             # No entry points found, cryface bad shitty sucky map, just run the native spawn code I guess :(
+             (call_script, "script_multiplayer_find_spawn_point", ":player_team", 0, ":is_horseman"), 
+           (try_end),
+           # Vincenzo end
+           
+           #(eq,":should_spawn",1),
+		   (display_message,"@spawn agent"),
+           (player_spawn_new_agent, ":player_no", reg0),
+         (try_end),
+         
+         # Vincenzo begin
+         (store_mission_timer_a, "$g_hq_last_spawn_wave"),
+         # Vincenzo end
+         ]),
+         
+      multiplayer_server_spawn_bots,
+      multiplayer_server_manage_bots,
+
+	  
+	          
+      (0, 0, 0, [(neg|multiplayer_is_dedicated_server),(key_clicked,key_m)],
+       [
+         (try_begin),
+           (neg|is_presentation_active,"prsnt_conquest_flag_select"),
+           (start_presentation,"prsnt_conquest_flag_select"),
+         (try_end),
+         ]),
+         
+      (ti_tab_pressed, 0, 0, [],
+       [
+         (try_begin),
+           (eq, "$g_multiplayer_mission_end_screen", 0),
+           (assign, "$g_multiplayer_stats_chart_opened_manually", 1),
+           (start_presentation, "prsnt_multiplayer_stats_chart"),
+         (try_end),
+         ]),
+
+      
+      (ti_escape_pressed, 0, 0, [],
+       [
+         (neg|is_presentation_active, "prsnt_multiplayer_escape_menu"),
+         (neg|is_presentation_active, "prsnt_multiplayer_stats_chart"),
+         (eq, "$g_waiting_for_confirmation_to_terminate", 0),
+         (start_presentation, "prsnt_multiplayer_escape_menu"),
+         ]),
+      ] + mm_multiplayer_common,
+
+#] closing bracket see above
+),
 
 
 

@@ -117,7 +117,7 @@ scripts = [
 
     ##THE AGENT
     #script_db_change_agent
-    #INPUT: unique_id,username in s0,local_id,team_id,troop_id,relative hit points
+    #INPUT: unique_id,username in s0,local_id,team_id,troop_id,absolute hit points
     # changes the given player's agent attributes in the database
     ("db_change_agent",[
         (store_script_param_1, ":unique_player_id"),
@@ -146,7 +146,7 @@ scripts = [
             (ge,":agent_id",0),
             (agent_get_team, reg1, ":agent_id"),
             (agent_get_troop_id, reg2, ":agent_id"),
-            (store_agent_hit_points, reg3, ":agent_id", 0),
+            (store_agent_hit_points, reg3, ":agent_id", 1),
             (assign,reg0,":unique_player_id"),
             (assign,reg10,ow_db_event_update_agent),
             (str_store_string,s10,"str_ow_webserver_url"),
@@ -386,16 +386,6 @@ scripts = [
             (player_set_team_no, ":local_player_id",":team_id"),
             (player_set_troop_id, ":local_player_id", ":troop_id"),
 
-#            (player_add_spawn_item, ":local_player_id", 0, ":w1"),
-#            (player_add_spawn_item, ":local_player_id", 1, ":w2"),
-#            (player_add_spawn_item, ":local_player_id", 2, ":w3"),
-#            (player_add_spawn_item, ":local_player_id", 3, ":w4"),
-#            (player_add_spawn_item, ":local_player_id", 4, ":head"),
-#            (player_add_spawn_item, ":local_player_id", 5, ":body"),
-#            (player_add_spawn_item, ":local_player_id", 6, ":leg"),
-#            (player_add_spawn_item, ":local_player_id", 7, ":hand"),
-#            (player_add_spawn_item, ":local_player_id", 8, ":horse"),
-
 
             (try_begin),
                 (neq,":horse",-1),
@@ -410,29 +400,10 @@ scripts = [
             (try_begin),
                 (eq,":spawn_immediately",1),
                 (player_spawn_new_agent,  ":local_player_id", ":spawn_entry_point"),
-                #(agent_set_hit_points, reg0, ":hitpoints"),
+                #(agent_set_hit_points, reg0, ":hitpoints",1), doesnt work, agent isnt spawned yet? make global
+				(assign,"$my_agent_hitpoints",":hitpoints"),#veeeery ugly. find again in equip_player_agent!
             (try_end),
-#            (assign,reg3,":local_player_id"),
-#            (assign,reg4,":current_map_id"),
-#            (assign,reg5,":direction"),
-#            (assign,reg6,":posx"),
-#            (assign,reg7,":posy"),
-#            (assign,reg8,":posz"),
-#            (assign,reg9,":team_id"),
-#            (assign,reg10,":troop_id"),
-#            (assign,reg11,":hitpoints"),
-#            (assign,reg12,":w1"),
-#            (assign,reg13,":w2"),
-#            (assign,reg14,":w3"),
-#            (assign,reg15,":w4"),
-#            (assign,reg16,":head"),
-#            (assign,reg17,":body"),
-#            (assign,reg18,":leg"),
-#            (assign,reg19,":hand"),
-#            (assign,reg12,":horse"),
-           # (str_store_string, s0, "@playerid:{reg3},dbmap:{reg4},traveldir:{reg5},posx:{reg6},posy:{reg7},posz:{reg8},team:{reg9},troop:{reg10},hitpoints{reg11},w1:{reg12},w1:{reg12},w1:{reg12},w1:{reg12},w2:{reg13},w3:{reg14},w4:{reg15},head:{reg16},body:{reg17},legs:{reg18},hand:{reg19},horse:{reg20}."),
-           # (multiplayer_send_string_to_server, multiplayer_event_show_server_message, s0),
-#            (display_message,"@playerid:{reg3},dbmap:{reg4},traveldir:{reg5},posx:{reg6},posy:{reg7},posz:{reg8},team:{reg9},troop:{reg10},hitpoints:{reg11},horse:{reg12}."),
+
     ]),
 
     #script_db_callback_set_lobby_presentations
@@ -555,7 +526,7 @@ scripts = [
         (str_store_string,s3, "@character menu reached"),
 		
 		(multiplayer_send_int_to_server, ow_multiplayer_event_fade_out_agent, ":agent_id"),#fade out agent (server cares)
-        (finish_mission, 2),
+        (finish_mission, 0.1),
 
 
     ]),
@@ -710,6 +681,9 @@ scripts = [
 			(eq,":refill_ammo",1),
 			(agent_refill_ammo, ":agent_id"),
 		(try_end),
+		
+		(agent_set_hit_points, ":agent_id", "$my_agent_hitpoints",1),#ugly global from callback_handle_join, where the travelled player's agent is spawned. now and here he is equipped and gets his hitpoints -.-
+
 
 		
         #(display_message,"@agent equipped"),
@@ -7974,13 +7948,13 @@ scripts = [
           (troop_get_slot, ":current_owner", "trp_multiplayer_data", ":cur_flag_slot"),
           (player_get_team_no,":player_team",":player_no"),
           (val_add,":player_team",1),
-		  #OPEN WORLD BEGIN
+			#OPEN WORLD BEGIN
             (try_begin),#spawn selection: at main camp
                 (ge,":cur_flag_slot",multi_data_flag_owner_end),
                 (player_set_slot,":player_no",slot_player_selected_flag,":value"),
                 (multiplayer_send_message_to_player, ":player_no", multiplayer_event_return_confirmation),
             (else_try),#normal flag selection case
-#OPEN WORLD END
+			#OPEN WORLD END
 			  (try_begin),
 				(eq,":player_team",":current_owner"),
 				
@@ -8116,6 +8090,8 @@ scripts = [
 		    (store_script_param, ":agent_id", 3),
 			(try_begin),#if agent id is valid
 				(ge,":agent_id",0),#if valid agent
+				(agent_get_player_id,":player",":agent_id"),
+				(player_set_slot, ":player", slot_player_first_spawn, 1),#prevent conquest from respawning the agent
 				(agent_get_wielded_item, ":itm",":agent_id",0),
 				(agent_unequip_item, ":agent_id", ":itm"),
 				(try_for_range, ":cur_slot",0, 4),#delete the weapon slots
@@ -8903,7 +8879,7 @@ scripts = [
                 (player_get_team_no, ":team", ":player_id"),
                 (player_get_troop_id, ":troop", ":player_id"),
                 (str_store_player_username, s0, ":player_id"),
-                (call_script,"script_db_change_agent",":unique_player_id",":player_id",":team",":troop",0),
+                (call_script,"script_db_change_agent",":unique_player_id",":player_id",":team",":troop",1000),
 				
                 (troop_get_inventory_slot, reg0, ":troop", ek_item_0),
                 (troop_get_inventory_slot, reg1, ":troop", ek_item_1),
@@ -21070,17 +21046,17 @@ scripts = [
              (troop_get_slot, ":current_owner", "trp_multiplayer_data", ":cur_flag_slot"),
          
              (try_begin),
-               (eq, ":place_no", 0),
-               (entry_point_get_position, pos0, multi_base_point_team_1),
-               (scene_prop_get_instance, ":flag_id", "$team_1_flag_scene_prop", ":place_no"),
-               (assign, "$g_base_flag_team_1", ":flag_id"),
-             (else_try),
-               (eq, ":place_no", 1),
-               (entry_point_get_position, pos0, multi_base_point_team_2),
-               (scene_prop_get_instance, ":flag_id", "$team_2_flag_scene_prop", ":place_no"),
-               (assign, "$g_base_flag_team_2", ":flag_id"),
-             (else_try),
-               (assign, ":flag_start_red", 2),
+#               (eq, ":place_no", 0),
+#               (entry_point_get_position, pos0, multi_base_point_team_1),
+#               (scene_prop_get_instance, ":flag_id", "$team_1_flag_scene_prop", ":place_no"),
+#               (assign, "$g_base_flag_team_1", ":flag_id"),
+#             (else_try),
+#               (eq, ":place_no", 1),
+#               (entry_point_get_position, pos0, multi_base_point_team_2),
+#               (scene_prop_get_instance, ":flag_id", "$team_2_flag_scene_prop", ":place_no"),
+#               (assign, "$g_base_flag_team_2", ":flag_id"),
+#             (else_try),
+               (assign, ":flag_start_red", 0),
                (scene_prop_get_num_instances, ":num_initial_red_flags", "spr_headquarters_flag_red"),
                (store_add, ":flag_start_blue", ":flag_start_red", ":num_initial_red_flags"),
                (scene_prop_get_num_instances, ":num_initial_blue_flags", "spr_headquarters_flag_blue"),
