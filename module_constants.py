@@ -15,6 +15,7 @@ from ID_factions import *
 ##  Open World Constants ###############################
 ########################################################
 #game engine events
+ow_multiplayer_event_fake_travelled = 122
 ow_multiplayer_event_travel  = 123
 ow_multiplayer_event_agent_equip_item = 124
 ow_multiplayer_event_master_player_joined_prsnt = 125

@@ -297,8 +297,8 @@ scripts = [
 
     ##CALLBACKS
     #script_db_callback_reserve_slot
-    #INPUT localid,direction/location,reserved,hostip in s0, iplength,port,password in s1,passwordlength
-    # if reserving was successful, let the player travel, if not, not.
+    #INPUT localid,direction/location,returnvalue(0=not reserved,1=reserved,2=targetmap=currentmap,hostip in s0, iplength,port,password in s1,passwordlength
+    # if reserving was successful, let the player travel, if not, not. If travel target = current server, 
     ("db_callback_reserve_slot",[
         (store_script_param_1, ":local_id"),
         (store_script_param_2, ":dir"),
@@ -310,12 +310,19 @@ scripts = [
         (store_script_param, ":passwordlength", 6),
         (try_begin),
             (eq,":reserved",1),
-            #(display_message,"@slot reserved!"),
+            (display_message,"@slot reserved!"),
             (player_get_agent_id,":agent_id",":local_id"),
             (call_script,"script_travel_to",":agent_id",":iplength",":port",":passwordlength"),
         (else_try),
+			(eq,":reserved",0),
             ##TODO ERROR DIALOG
             (display_message,"@ERROR:SERVER FULL"),
+        (else_try),
+			(eq,":reserved",2),#targetmap = currentmap, no real travel necessary
+            (display_message,"@same map!"),
+			(player_get_agent_id,":agent_id",":local_id"),
+            (call_script,"script_travel_to",":agent_id",":iplength",":port",":passwordlength"),
+			#(call_script,"script_fake_travel_to",":agent_id"),
         (try_end),
     ]),
 
@@ -373,6 +380,7 @@ scripts = [
             (eq,":direction",ow_multiplayer_map_travel_maincamp),#player traveled here to spawn at the maincamp
             #posx,posy,posz are the coordinates of the main camp
             (assign,":spawn_immediately",1),
+			(display_message,"@this player wants to respawn at maincamp"),
         (else_try),  #player traveled directly here. positions means nothing -> let him choose a spawn point
             (start_presentation,"prsnt_conquest_flag_select"),
             (assign,":spawn_immediately",0),#don't spawn him directly, let him choose.
@@ -399,6 +407,7 @@ scripts = [
 
             (try_begin),
                 (eq,":spawn_immediately",1),
+				(display_message,"@spawn agent piluspalus"),
                 (player_spawn_new_agent,  ":local_player_id", ":spawn_entry_point"),
                 #(agent_set_hit_points, reg0, ":hitpoints",1), doesnt work, agent isnt spawned yet? make global
 				(assign,"$my_agent_hitpoints",":hitpoints"),#veeeery ugly. find again in equip_player_agent!
@@ -477,6 +486,19 @@ scripts = [
         (assign,reg3,ow_db_event_load_travel),
         (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg3}&username={s0}&localid={reg1}&callbackid={reg2}"),#send http request
     ]),
+	
+	#script_fake_travel_to
+	#INPUT agent_id
+	#client sided, doesnt leave the server but does a fake travel and execute the ti_on_player_joined code instead
+	("fake_travel_to",[
+        (store_script_param_1, ":agent_id"),
+		#(multiplayer_send_int_to_server, ow_multiplayer_event_fade_out_agent, ":agent_id"),#fade out agent (server cares)
+		#send "new" player to server.
+		(multiplayer_get_my_player,":player"),
+        (multiplayer_send_2_int_to_server, ow_multiplayer_event_fake_travelled, ":player"),
+
+
+	]),
 
     #script_travel_to
     #INPUT agent_id,serverip in s0,iplength,port,password in s1, passwordlength
@@ -525,7 +547,10 @@ scripts = [
         (display_message,"@{s0},{reg0},{reg1},{s1},{reg2}"),
         (str_store_string,s3, "@character menu reached"),
 		
-		(multiplayer_send_int_to_server, ow_multiplayer_event_fade_out_agent, ":agent_id"),#fade out agent (server cares)
+		(try_begin),
+			(ge,":agent_id",0),#valid agent
+			(multiplayer_send_int_to_server, ow_multiplayer_event_fade_out_agent, ":agent_id"),#fade out agent (server cares)
+		(try_end),
         (finish_mission, 0.1),
 
 
@@ -5593,6 +5618,7 @@ scripts = [
           ##condition checks are done
           # (player_set_slot, ":player_no", ":slot_no", ":value"),
         # (try_end),
+
       (else_try),
         (eq, ":event_type", multiplayer_event_change_team_no),
         (store_script_param, ":value", 3),
@@ -8086,6 +8112,18 @@ scripts = [
        # Beaver End
 	  #OPEN WORLD---------------------------------------
 	  (else_try),
+		(eq, ":event_type", ow_multiplayer_event_fake_travelled), #player fake travelled here, handle like a joined player.
+		(store_script_param, ":new_player_player_no", 3),
+		#(player_set_slot, ":new_player_player_no", slot_player_first_spawn, 1),
+		(player_get_agent_id,":agent_id",":new_player_player_no"),
+		(player_control_agent,":new_player_player_no",-1),
+		(multiplayer_send_int_to_server, ow_multiplayer_event_fade_out_agent, ":agent_id"),#fade out agent (server cares)
+		(player_get_unique_id, ":unique_player_id", ":new_player_player_no"),
+		(str_store_player_username, s0, ":new_player_player_no"),
+		(display_message,"@fake travel!spawn!"),
+		(call_script,"script_db_load_player_data",":unique_player_id",":new_player_player_no",ow_db_callback_handle_join),#will do the rest
+
+	  (else_try),
 		(eq, ":event_type", ow_multiplayer_event_fade_out_agent), #player leaves server, leave no tracks
 		    (store_script_param, ":agent_id", 3),
 			(try_begin),#if agent id is valid
@@ -8869,6 +8907,7 @@ scripts = [
             (player_get_agent_id,":agent_id", ":player_id"),
             (try_begin),
                 (ge,":agent_id",0),#agent exists
+				(agent_is_alive,":agent_id"),#and is alive
                 #store agent
                 (str_store_player_username, s0, ":player_id"),
                 (call_script,"script_db_update_agent",":unique_player_id",":player_id"),

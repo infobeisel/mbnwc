@@ -11692,20 +11692,22 @@ presentations = [
         (try_end),
         
         # Default select the first friendly flag if you dont have anything selected or just lost it...
-        (try_begin),
-          (eq,"$g_current_selected_flag",-1),
-          
-          (assign,":end_cond","$g_number_of_flags"),
-          (try_for_range,":place_no",0,":end_cond"),
-            (store_add,":cur_flag_slot",multi_data_flag_owner_begin,":place_no"),
-            (troop_get_slot,":current_owner","trp_multiplayer_data",":cur_flag_slot"),
-            
-            (eq,":current_owner",":player_team"),
-            (assign,"$g_current_selected_flag",":place_no"),
-            
-            (assign,":end_cond",0),
-          (try_end),
-        (try_end),
+		#piluspalus : no, let it be....
+        
+#        (try_begin),
+#          (eq,"$g_current_selected_flag",-1),
+#          
+#          (assign,":end_cond","$g_number_of_flags"),
+#          (try_for_range,":place_no",0,":end_cond"),
+#            (store_add,":cur_flag_slot",multi_data_flag_owner_begin,":place_no"),
+#            (troop_get_slot,":current_owner","trp_multiplayer_data",":cur_flag_slot"),
+#            
+#            (eq,":current_owner",":player_team"),
+#            (assign,"$g_current_selected_flag",":place_no"),
+#            
+#            (assign,":end_cond",0),
+#          (try_end),
+#        (try_end),
         
         (try_begin),
           (eq,":allied_team",0),
@@ -11763,6 +11765,9 @@ presentations = [
         (try_end),
         (assign, ":cur_flag_index", 0),
         
+		#piluspalus
+		(assign,":num_allied_flags",0),
+		
         (assign,":end_cond","$g_number_of_flags"),
         (try_for_range, ":place_no", 0, ":end_cond"),
           (store_add, ":cur_flag_slot", multi_data_flag_owner_begin, ":place_no"),
@@ -11774,6 +11779,7 @@ presentations = [
           (else_try),
             (eq,":current_owner",":player_team"), #Allied Flag
             (create_image_button_overlay, reg41, ":allied_flag_mesh", ":allied_flag_mesh"),
+			(val_add,":num_allied_flags",1),#piluspalus
           (else_try),
             (create_image_button_overlay, reg41, ":enemy_flag_mesh", ":enemy_flag_mesh"), #Enemy Flag
           (try_end),
@@ -11849,21 +11855,41 @@ presentations = [
           (val_add, ":cur_flag_index", 1),
         (try_end),
         
-        (create_button_overlay, "$g_presentation_obj_flag_done", "str_done", 0),
-        (try_begin),
-          (gt,"$g_current_selected_flag",-1),
-          (overlay_set_color, "$g_presentation_obj_flag_done", 0xFFFFFF),
-          (overlay_set_hilight_color, "$g_presentation_obj_flag_done", 0x55FF50),
-        (else_try),
-          (overlay_set_color, "$g_presentation_obj_flag_done", 0x888888),
-          (overlay_set_hilight_color, "$g_presentation_obj_flag_done", 0x888888),
-        (try_end),
-        (position_set_x, pos51, 450),
-        (position_set_y, pos51, 80),
-        (overlay_set_position, "$g_presentation_obj_flag_done", pos51),
-        (position_set_x, pos51, 1500),
-        (position_set_y, pos51, 1500),
-        (overlay_set_size, "$g_presentation_obj_flag_done", pos51),
+		#piluspalus 
+		(try_begin),
+			(gt,":num_allied_flags",0),#there are more than 0 allied flags
+			(neq,"$g_current_selected_flag",-1),#the player has selected one of these
+			(create_button_overlay, "$g_presentation_obj_flag_done", "str_done", 0),
+			(try_begin),
+			  (gt,"$g_current_selected_flag",-1),
+			  (overlay_set_color, "$g_presentation_obj_flag_done", 0xFFFFFF),
+			  (overlay_set_hilight_color, "$g_presentation_obj_flag_done", 0x55FF50),
+			(else_try),
+			  (overlay_set_color, "$g_presentation_obj_flag_done", 0x888888),
+			  (overlay_set_hilight_color, "$g_presentation_obj_flag_done", 0x888888),
+			(try_end),
+			(position_set_x, pos51, 450),
+			(position_set_y, pos51, 80),
+			(overlay_set_position, "$g_presentation_obj_flag_done", pos51),
+			(position_set_x, pos51, 1500),
+			(position_set_y, pos51, 1500),
+			(overlay_set_size, "$g_presentation_obj_flag_done", pos51),
+			(assign,"$flag_select_wants_rs_at_maincamp",0),
+		(else_try),#the player didnt select anything and wants to spawn at maincamp
+			(create_button_overlay, "$g_presentation_obj_flag_done", "str_rs_at_base_camp", 0),
+			(overlay_set_color, "$g_presentation_obj_flag_done", 0xFFFFFF),
+			(overlay_set_hilight_color, "$g_presentation_obj_flag_done", 0x55FF50),
+			(position_set_x, pos51, 430),
+			(position_set_y, pos51, 80),
+			(overlay_set_position, "$g_presentation_obj_flag_done", pos51),
+			(position_set_x, pos51, 1500),
+			(position_set_y, pos51, 1500),
+			(overlay_set_size, "$g_presentation_obj_flag_done", pos51),
+			(assign,"$flag_select_wants_rs_at_maincamp",1),
+		(try_end),
+		
+        
+        
     
     
     
@@ -11909,11 +11935,17 @@ presentations = [
             
             (assign, "$g_confirmation_result", 0),
             (assign, "$g_waiting_for_confirmation_to_terminate", 1),
-            
-            (try_begin),
-              (gt,"$g_current_selected_flag",-1),
-              (multiplayer_send_int_to_server,multiplayer_event_set_spawn_flag,"$g_current_selected_flag"),
-            (try_end),
+			
+			(try_begin),
+				(eq,"$flag_select_wants_rs_at_maincamp",1),
+				#piluspalus: if done clicked and no flag selected->maincamp 
+				#OPEN WORLD
+				(multiplayer_send_int_to_server,multiplayer_event_set_spawn_flag,multi_data_flag_owner_end),#at the moment this means maincamp...
+				(assign,"$flag_select_wants_rs_at_maincamp",0),
+            (else_try),
+				(gt,"$g_current_selected_flag",-1),
+				(multiplayer_send_int_to_server,multiplayer_event_set_spawn_flag,"$g_current_selected_flag"),
+			(try_end),
           (else_try),
             (assign, ":end_cond", 30),
             (try_for_range, ":i_button", 0, ":end_cond"),
@@ -11956,6 +11988,8 @@ presentations = [
           (assign, "$g_waiting_for_confirmation_to_terminate", 0),
           (call_script,"script_multiplayer_client_show_respawncounter"),
           (presentation_set_duration, 0),
+		  #piluspalus: reset flag selection
+		  (assign,"$g_current_selected_flag",-1),
         (else_try),
           (eq, "$g_waiting_for_confirmation_to_terminate", 1),
           (eq, "$g_confirmation_result", 1),

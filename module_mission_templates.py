@@ -4375,121 +4375,135 @@ mission_templates = [
            (player_get_troop_id, ":player_troop", ":player_no"), #if troop is not selected do not spawn his agent
            (ge, ":player_troop", 0),
 
-           # Vincenzo begin
-           (assign, ":has_flags", 0),
-           (try_begin),
-             (eq, ":player_team", 0),
-             (assign, ":player_team_entrypoints", ":entrypoints_team_1"),
-             (assign, ":player_team_entrypoints_count", ":entrypoints_count_team_1"),
-             (assign, ":start_point", 1),
-             (try_begin),
-               (gt, ":flags_team_1", 1),
-               (assign, ":has_flags", 1),
-             (try_end),
-           (else_try),
-             (assign, ":player_team_entrypoints", ":entrypoints_team_2"),
-             (assign, ":player_team_entrypoints_count", ":entrypoints_count_team_2"),
-             (assign, ":start_point", 101),
-             (try_begin),
-               (gt, ":flags_team_2", 11),
-               (assign, ":has_flags", 1),
-             (try_end),
-           (try_end),
-           
-           (eq, ":has_flags", 1), # More then 0 flags are owned, if not stop trying to spawn this agent.
-           # Vincenzo end
 		   
 		  
-           
-           (player_get_agent_id, ":player_agent", ":player_no"),
-           (assign, ":spawn_new", 0),
-           (try_begin),
-             (player_get_slot, ":player_first_spawn", ":player_no", slot_player_first_spawn),
-             (eq, ":player_first_spawn", 1),
-             (assign, ":spawn_new", 0),#piluspalus set to 0
-             (player_set_slot, ":player_no", slot_player_first_spawn, 0),
-           (else_try),
-             (try_begin),
-               (lt, ":player_agent", 0),
-               (assign, ":spawn_new", 1),
-             (else_try),
-               (neg|agent_is_alive, ":player_agent"),
-             # Vincenzo begin
-               # (agent_get_time_elapsed_since_removed, ":elapsed_time", ":player_agent"),
-               # (gt, ":elapsed_time", "$g_multiplayer_respawn_period"),
-             # Vincenzo end
-               (assign, ":spawn_new", 1),
-             (try_end),             
-           (try_end),
-           (eq, ":spawn_new", 1),
-		   (display_message,"@equip agent"),
+		   #piluspalus: respect the other case: (no) ally flag existent, but/and player wants to spawn at maincamp
+			(try_begin),
+				(player_get_slot,":flag_id",":player_no",slot_player_selected_flag),
+				(player_set_slot,":player_no",slot_player_selected_flag,-1),
+				(eq,":flag_id",multi_data_flag_owner_end),#means maincamp at the moment
+				(display_message,"@ok spawn at maincamp"),
+                (assign,":travelflag", ow_multiplayer_map_travel_maincamp),
+                (player_get_unique_id, ":unique_player_id", ":player_no"),
+                (multiplayer_send_3_int_to_player, ":player_no", ow_multiplayer_event_travel, ":travelflag", ":unique_player_id",1),
+			(else_try),
+			   # Vincenzo begin
+			   (assign, ":has_flags", 0),
+			   (try_begin),
+				 (eq, ":player_team", 0),
+				 (assign, ":player_team_entrypoints", ":entrypoints_team_1"),
+				 (assign, ":player_team_entrypoints_count", ":entrypoints_count_team_1"),
+				 (assign, ":start_point", 1),
+				 (try_begin),
+				   (gt, ":flags_team_1", 1),
+				   (assign, ":has_flags", 1),
+				 (try_end),
+			   (else_try),
+				 (assign, ":player_team_entrypoints", ":entrypoints_team_2"),
+				 (assign, ":player_team_entrypoints_count", ":entrypoints_count_team_2"),
+				 (assign, ":start_point", 101),
+				 (try_begin),
+				   (gt, ":flags_team_2", 11),
+				   (assign, ":has_flags", 1),
+				 (try_end),
+			   (try_end),
+			   
+			   (eq, ":has_flags", 1), # More then 0 flags are owned, if not stop trying to spawn this agent.
+			   # Vincenzo end
+			   
+			  
+			   
+			   (player_get_agent_id, ":player_agent", ":player_no"),
+			   (assign, ":spawn_new", 0),
+			   (try_begin),
+				 (player_get_slot, ":player_first_spawn", ":player_no", slot_player_first_spawn),
+				 (eq, ":player_first_spawn", 1),
+				 (assign, ":spawn_new", 0),#piluspalus set to 0
+				 (player_set_slot, ":player_no", slot_player_first_spawn, 0),
+			   (else_try),
+				 (try_begin),
+				   (lt, ":player_agent", 0),
+				   (assign, ":spawn_new", 1),
+				 (else_try),
+				   (neg|agent_is_alive, ":player_agent"),
+				 # Vincenzo begin
+				   # (agent_get_time_elapsed_since_removed, ":elapsed_time", ":player_agent"),
+				   # (gt, ":elapsed_time", "$g_multiplayer_respawn_period"),
+				 # Vincenzo end
+				   (assign, ":spawn_new", 1),
+				 (try_end),             
+			   (try_end),
+			   (eq, ":spawn_new", 1),
+			   (display_message,"@equip agent"),
 
-           (call_script, "script_multiplayer_buy_agent_equipment", ":player_no"),
-         
-          
-           # Vincenzo begin
-           #(assign,":should_spawn",1),
-           (try_begin),
-             (gt,":player_team_entrypoints_count",0), # More then 0 entry points are found.
-             
-             (try_begin),
-               #(troop_get_slot,":value","trp_conquest_spawn_dummy",":player_no"),
-               (player_get_slot,":flag_id",":player_no",slot_player_selected_flag),
-               (store_add, ":cur_flag_slot", multi_data_flag_owner_begin, ":flag_id"),
-               (troop_get_slot, ":current_owner", "trp_multiplayer_data", ":cur_flag_slot"),
-               (store_add,":player_team_plus_1",":player_team",1),
-               
-               # (assign,reg4,":value"),
-               # (assign,reg3,":player_team_plus_1"),
-               # (assign,reg2,":current_owner"),
-               # (str_store_string,s4,"@Selected Flag Owner: {reg2} Player Team plus 1: {reg3} Flag value: {reg4}"),
-               # (call_script, "script_multiplayer_broadcast_message"),
-               
-               (eq,":player_team_plus_1",":current_owner"), # we have a flaggy for us selected =)
-               
-               (store_mul,":current_flag_slot",":flag_id",50),  # each 50 slots containt entry points for a flag.
-               (troop_get_slot, ":entry_point_count", "trp_entrypoints_per_flag_dummy", ":current_flag_slot"),
-               (val_add,":current_flag_slot",1),
-               (val_add,":entry_point_count",":current_flag_slot"),
-               #(val_add,":entry_point_count",1),
-               
-               (store_random_in_range, ":spawn_entry_no", ":current_flag_slot", ":entry_point_count"),
-               (troop_get_slot, ":entry_point", "trp_entrypoints_per_flag_dummy", ":spawn_entry_no"),
-               
-                # (assign,reg1,":flag_id"),
-                # (assign,reg2,":entry_point_count"),
-                # (assign,reg3,":spawn_entry_no"),
-                # (assign,reg4,":current_flag_slot"),
-                # (assign,reg5,":entry_point"),
-                # (str_store_string,s4,"@flag_id:{reg1}  current_flag_slot+1:{reg4}  entry_point_count:{reg2}  spawn_entry_no:{reg3} thats entry_point:{reg5}"),
-                # (call_script, "script_multiplayer_broadcast_message"),
-             (else_try),
-               (store_random_in_range, ":spawn_entry_no", ":start_point", ":player_team_entrypoints"),
-               (troop_get_slot, ":entry_point", "trp_entrypoints_dummy", ":spawn_entry_no"),
-             (try_end),
-             
-             (assign, reg0, ":entry_point"), # assign that bitch =)
-           (else_try), 
-              
-              #  (str_store_player_username, s9, ":player_no"),
-              # (assign, reg9, ":spawn_near_flag"),
-              # (str_store_string, s4, "@WARNING! NO ENTRY POINT FOUND FOR PLAYER: {s9}"),
-              # (call_script, "script_multiplayer_broadcast_message"), # Broadcast message
-             (troop_get_inventory_slot, ":has_item", ":player_troop", ek_horse),
-             (try_begin),
-               (ge, ":has_item", 0),
-               (assign, ":is_horseman", 1),
-             (else_try),
-               (assign, ":is_horseman", 0),
-             (try_end),
-             # No entry points found, cryface bad shitty sucky map, just run the native spawn code I guess :(
-             (call_script, "script_multiplayer_find_spawn_point", ":player_team", 0, ":is_horseman"), 
-           (try_end),
-           # Vincenzo end
-           
-           #(eq,":should_spawn",1),
-		   (display_message,"@spawn agent"),
-           (player_spawn_new_agent, ":player_no", reg0),
+			   (call_script, "script_multiplayer_buy_agent_equipment", ":player_no"),
+			 
+			  
+			   # Vincenzo begin
+			   #(assign,":should_spawn",1),
+			   (try_begin),
+				 (gt,":player_team_entrypoints_count",0), # More then 0 entry points are found.
+				 
+				 (try_begin),
+				   #(troop_get_slot,":value","trp_conquest_spawn_dummy",":player_no"),
+				   (player_get_slot,":flag_id",":player_no",slot_player_selected_flag),
+				   (store_add, ":cur_flag_slot", multi_data_flag_owner_begin, ":flag_id"),
+				   (troop_get_slot, ":current_owner", "trp_multiplayer_data", ":cur_flag_slot"),
+				   (store_add,":player_team_plus_1",":player_team",1),
+				   
+				   # (assign,reg4,":value"),
+				   # (assign,reg3,":player_team_plus_1"),
+				   # (assign,reg2,":current_owner"),
+				   # (str_store_string,s4,"@Selected Flag Owner: {reg2} Player Team plus 1: {reg3} Flag value: {reg4}"),
+				   # (call_script, "script_multiplayer_broadcast_message"),
+				   
+				   (eq,":player_team_plus_1",":current_owner"), # we have a flaggy for us selected =)
+				   
+				   (store_mul,":current_flag_slot",":flag_id",50),  # each 50 slots containt entry points for a flag.
+				   (troop_get_slot, ":entry_point_count", "trp_entrypoints_per_flag_dummy", ":current_flag_slot"),
+				   (val_add,":current_flag_slot",1),
+				   (val_add,":entry_point_count",":current_flag_slot"),
+				   #(val_add,":entry_point_count",1),
+				   
+				   (store_random_in_range, ":spawn_entry_no", ":current_flag_slot", ":entry_point_count"),
+				   (troop_get_slot, ":entry_point", "trp_entrypoints_per_flag_dummy", ":spawn_entry_no"),
+				   
+					# (assign,reg1,":flag_id"),
+					# (assign,reg2,":entry_point_count"),
+					# (assign,reg3,":spawn_entry_no"),
+					# (assign,reg4,":current_flag_slot"),
+					# (assign,reg5,":entry_point"),
+					# (str_store_string,s4,"@flag_id:{reg1}  current_flag_slot+1:{reg4}  entry_point_count:{reg2}  spawn_entry_no:{reg3} thats entry_point:{reg5}"),
+					# (call_script, "script_multiplayer_broadcast_message"),
+				 (else_try),
+				   (store_random_in_range, ":spawn_entry_no", ":start_point", ":player_team_entrypoints"),
+				   (troop_get_slot, ":entry_point", "trp_entrypoints_dummy", ":spawn_entry_no"),
+				 (try_end),
+				 
+				 (assign, reg0, ":entry_point"), # assign that bitch =)
+			   (else_try), 
+				  
+				  #  (str_store_player_username, s9, ":player_no"),
+				  # (assign, reg9, ":spawn_near_flag"),
+				  # (str_store_string, s4, "@WARNING! NO ENTRY POINT FOUND FOR PLAYER: {s9}"),
+				  # (call_script, "script_multiplayer_broadcast_message"), # Broadcast message
+				 (troop_get_inventory_slot, ":has_item", ":player_troop", ek_horse),
+				 (try_begin),
+				   (ge, ":has_item", 0),
+				   (assign, ":is_horseman", 1),
+				 (else_try),
+				   (assign, ":is_horseman", 0),
+				 (try_end),
+				 # No entry points found, cryface bad shitty sucky map, just run the native spawn code I guess :(
+				 (call_script, "script_multiplayer_find_spawn_point", ":player_team", 0, ":is_horseman"), 
+			   (try_end),
+			   # Vincenzo end
+			   
+			   #(eq,":should_spawn",1),
+			   (display_message,"@spawn agent vincenzo"),
+			   (player_spawn_new_agent, ":player_no", reg0),
+			   
+		    (try_end),
          (try_end),
          
          # Vincenzo begin
