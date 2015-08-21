@@ -4235,7 +4235,17 @@ presentations = [
       (try_end),
       (call_script, "script_multiplayer_get_troop_class", ":cur_troop"),
       (assign, ":selected_troop_rank", reg1),
-      (create_in_game_button_overlay, "$g_presentation_obj_select_done", "str_done", 0),
+	  
+	  #piluspalus
+	  (try_begin),
+		(eq,"$islobby",0),
+		(create_in_game_button_overlay, "$g_presentation_obj_select_done", "str_done", 0),
+	  (else_try),
+		(create_in_game_button_overlay, "$g_presentation_obj_select_done", "str_rs_at_base_camp", 0),#if in lobby
+	  (try_end),
+	  
+	  
+	  
       (position_set_x, pos1, 820),
       (position_set_y, pos1, 40),
       (overlay_set_position, "$g_presentation_obj_select_done", pos1),

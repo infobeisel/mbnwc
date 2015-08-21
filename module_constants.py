@@ -36,6 +36,7 @@ ow_db_event_update_travel = 10
 ow_db_event_load_travel = 11
 ow_db_event_update_map = 12
 ow_db_event_test_connection = 15
+ow_db_event_load_maincamp = 16
 
 
 #configurables (should be located maybe in "module_variables"
@@ -46,8 +47,9 @@ ow_db_callback_reserve_slot = 0
 ow_db_callback_handle_join = 1
 ow_db_callback_set_lobby_presentations = 2
 ow_db_callback_equip_agent = 3
+ow_db_callback_place_maincamp_flags = 4
 
-ow_multiplayer_map_edge_entry_points = 40
+ow_multiplayer_map_edge_entry_points = 43
 
 ow_multiplayer_map_travel_dir_north = 0 #the player travels in this direction
 ow_multiplayer_map_travel_dir_east = 1

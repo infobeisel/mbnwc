@@ -49,7 +49,7 @@ scripts = [
         (assign,reg0,":posx"),
         (assign,reg1,":posy"),
         (assign,reg2,":posz"),
-        #(display_message,"@wanted pos: {reg0},{reg1},{reg2}"),
+        (display_message,"@wanted pos: {reg0},{reg1},{reg2}"),
         #init vals
         (assign,":chosen_dist",100000),
         (assign,":ret",-1),
@@ -60,7 +60,8 @@ scripts = [
             (position_get_x,reg0,pos1),
             (position_get_y,reg1,pos1),
             (position_get_z,reg2,pos1),
-            #(display_message,"@temp pos: {reg0},{reg1},{reg2}"),
+            (assign,reg3,":entry_point_no"),
+            (display_message,"@temp pos: {reg0},{reg1},{reg2} and entry point no {reg3}"),
 
             (get_distance_between_positions_in_meters, ":tmp_dist", pos1,pos0),
             (try_begin),
@@ -294,8 +295,102 @@ scripts = [
         (str_store_string,s1,"str_ow_webserver_url"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&event={reg3}&username={s0}"),#send http request
     ]),
-
+	
+	#script_db_get_maincamps_info
+	#INPUT: sceneid,worldinstance,callback_id
+	#OUTPUT: (through url response): maincampscount, 1stteam,1stx,1sty,1stz,2ndteam,2ndx,2ndy,2ndz,...
+	("db_get_maincamps_info",[
+        (store_script_param_1, reg0),
+        (store_script_param, reg2, 3),
+        (store_script_param_2, reg1),
+        (assign,reg3,ow_db_event_load_maincamp),
+        (str_store_string,s1,"str_ow_webserver_url"),
+        (send_message_to_url,"@{s1}?uniqueid=0&event={reg3}&username=server&sceneid={reg0}&worldinstance={reg1}&callbackid={reg2}"),#send http request
+    ]),
+	
     ##CALLBACKS
+	
+	#script_db_callback_place_maincamp_flags
+	#INPUT: maincampscount, 1stteam,1stx,1sty,1stz,2ndteam,2ndx,2ndy,2ndz,...
+	#places the maincamps on the map. server sided
+	("db_callback_place_maincamp_flags",[
+		(store_script_param, ":maincampscount", 1),
+
+		
+		
+		
+		(assign,reg0,":maincampscount"),
+		(display_message,"@place maincamp flags executed with {reg0} maincamps!"),
+		
+		(try_begin),
+			(gt,":maincampscount",0),#place one maincamp flag
+			(store_script_param, ":maincampteam1", 2),
+			(store_script_param, ":posx1", 3),
+			(store_script_param, ":posy1", 4),
+			(store_script_param, ":posz1", 5),
+			(init_position, pos0),
+			(position_set_x, pos0, ":posx1"),
+			(position_set_y, pos0, ":posy1"),
+			(position_set_z, pos0, ":posz1"),
+			(position_set_z_to_ground_level, pos0),
+			(set_spawn_position,pos0),
+			(spawn_scene_prop, "spr_headquarters_pole_code_only", 0),
+			(position_move_z, pos0, multi_headquarters_pole_height),
+			
+			(try_begin),
+				(eq,":maincampteam1",0),#team 1
+				(set_spawn_position, pos0),
+				(spawn_scene_prop, "$team_1_flag_scene_prop"),
+			(else_try),
+				(eq,":maincampteam1",1),#team 2
+				(set_spawn_position, pos0),
+				(spawn_scene_prop, "$team_2_flag_scene_prop"),
+			(try_end),
+			
+			(position_get_x,reg0,pos0),
+			(position_get_y,reg1,pos0),
+			(position_get_z,reg2,pos0),
+			(assign, reg3,":maincampteam1"),
+			(display_message,"@maincamp flag spawned at ({reg0},{reg1},{reg2}) for team {reg3}"),
+			
+			(gt,":maincampscount",1),#place a second flag
+			(store_script_param, ":maincampteam2", 6),
+			(store_script_param, ":posx2", 7),
+			(store_script_param, ":posy2", 8),
+			(store_script_param, ":posz2", 9),
+			(init_position, pos1),
+			(position_set_x, pos1, ":posx2"),
+			(position_set_y, pos1, ":posy2"),
+			(position_set_z, pos1, ":posz2"),
+			(position_set_z_to_ground_level, pos1),
+			(set_spawn_position,pos1),
+			(spawn_scene_prop, "spr_headquarters_pole_code_only", 0),
+			(position_move_z, pos1, multi_headquarters_pole_height),
+			
+			(try_begin),
+				(eq,":maincampteam2",0),#team 1
+				(set_spawn_position, pos1),
+				(spawn_scene_prop, "$team_1_flag_scene_prop"),
+			(else_try),
+				(eq,":maincampteam2",1),#team 2
+				(set_spawn_position, pos1),
+				(spawn_scene_prop, "$team_2_flag_scene_prop"),
+			(try_end),
+
+			(position_get_x,reg0,pos1),
+			(position_get_y,reg1,pos1),
+			(position_get_z,reg2,pos1),
+			(assign, reg3,":maincampteam2"),
+			(display_message,"@maincamp flag spawned at ({reg0},{reg1},{reg2}) for team {reg3}"),
+			
+		(try_end),
+
+		
+	]),
+	
+	
+	
+	
     #script_db_callback_reserve_slot
     #INPUT localid,direction/location,returnvalue(0=not reserved,1=reserved,2=targetmap=currentmap,hostip in s0, iplength,port,password in s1,passwordlength
     # if reserving was successful, let the player travel, if not, not. If travel target = current server, 
@@ -329,7 +424,7 @@ scripts = [
 
     #script_db_callback_handle_join
     # decides what to do with joined player and do it.
-    #INPUT: player_id,current_map_id,travel_flag(=direction),posx,posy,posz,team,troop,hitpoints,9x inventory
+    #INPUT: player_id,current_map_id,travel_flag(=direction),posx,posy,posz,maincampposx,maincampposy,maincampposz,team,troop,hitpoints,
 	#OUTPUT: agent id in reg0 
     ("db_callback_handle_join",[
         (store_script_param,":local_player_id",1),
@@ -338,9 +433,12 @@ scripts = [
         (store_script_param,":posx",4),
         (store_script_param,":posy",5),
         (store_script_param,":posz",6),
-        (store_script_param,":team_id",7),
-        (store_script_param,":troop_id",8),
-        (store_script_param,":hitpoints",9),
+        (store_script_param,":mcposx",7),
+        (store_script_param,":mcposy",8),
+        (store_script_param,":mcposz",9),
+		(store_script_param,":team_id",10),
+        (store_script_param,":troop_id",11),
+        (store_script_param,":hitpoints",12),
 #        (store_script_param,":w1",10),
 #        (store_script_param,":w2",11),
 #        (store_script_param,":w3",12),
@@ -349,7 +447,7 @@ scripts = [
 #        (store_script_param,":body",15),
 #        (store_script_param,":leg",16),
 #        (store_script_param,":hand",17),
-        (store_script_param,":horse",10),
+        (store_script_param,":horse",13),
         (assign,":spawn_immediately",0),
 
         ##POSITION
@@ -378,7 +476,9 @@ scripts = [
 
         (else_try), #main camp
             (eq,":direction",ow_multiplayer_map_travel_maincamp),#player traveled here to spawn at the maincamp
-            #posx,posy,posz are the coordinates of the main camp
+            (assign,":posx",":mcposx"),
+            (assign,":posy",":mcposy"),
+            (assign,":posz",":mcposz"),
             (assign,":spawn_immediately",1),
 			(display_message,"@this player wants to respawn at maincamp"),
         (else_try),  #player traveled directly here. positions means nothing -> let him choose a spawn point
@@ -515,7 +615,6 @@ scripts = [
         
 		
         #directives
-        ##TODO CHANGE THE APP TO GET SERVER DATA TO CONNECt DIreCtLY tO . find out reg0-... , s0-... and parse ip adress directly.
         (assign,reg0,":iplength"),
         (assign,reg1,":port"),
         (assign,reg2,":passwordlength"),
@@ -700,7 +799,7 @@ scripts = [
             #(display_message,"@don't know how to mount agent on horse..."),
 
         (try_end),
-
+		(agent_set_visibility, ":agent_id",1),#make sure he is visible
 		#refill ammo?
 		(try_begin),
 			(eq,":refill_ammo",1),
@@ -708,7 +807,8 @@ scripts = [
 		(try_end),
 		
 		(agent_set_hit_points, ":agent_id", "$my_agent_hitpoints",1),#ugly global from callback_handle_join, where the travelled player's agent is spawned. now and here he is equipped and gets his hitpoints -.-
-
+		
+		
 
 		
         #(display_message,"@agent equipped"),
@@ -5481,22 +5581,18 @@ scripts = [
             (assign,":posx",reg6),
             (assign,":posy",reg7),
             (assign,":posz",reg8),
-            (assign,":team_id",reg9),
-            (assign,":troop_id",reg10),
-            (assign,":hitpoints",reg11),
-            (assign,":w1",reg12),
-            (assign,":w2",reg13),
-            (assign,":w3",reg14),
-            (assign,":w4",reg15),
-            (assign,":head",reg16),
-            (assign,":body",reg17),
-            (assign,":leg",reg18),
-            (assign,":hand",reg19),
-            (assign,":horse",reg20),
-            (display_message,"@before call :playerid:{reg3},dbmap:{reg4},traveldir:{reg5},posx:{reg6},posy:{reg7},posz:{reg8},team:{reg9},troop:{reg10},hitpoints:{reg11},w1:{reg12},w2:{reg13},w3:{reg14},w4:{reg15},head:{reg16},body:{reg17},legs:{reg18},hand:{reg19},horse:{reg20}."),
+            (assign,":mcposx",reg9),
+            (assign,":mcposy",reg10),
+            (assign,":mcposz",reg11),
+            (assign,":team_id",reg12),
+            (assign,":troop_id",reg13),
+            (assign,":hitpoints",reg14),
+			(assign,":horse",reg23),
+
+            (display_message,"@before call :playerid:{reg3},dbmap:{reg4},traveldir:{reg5},posx:{reg6},posy:{reg7},posz:{reg8},mcposx:{reg9},mcposy:{reg10},mcposz:{reg11},team_id:{reg12},troop_id:{reg13},hitpoints:{reg14},horse{reg23}"),
 
 			#spawn agent and horse
-            (call_script,"script_db_callback_handle_join",":local_player_id",":current_map_id",":direction",":posx",":posy",":posz",":team_id",":troop_id",":hitpoints",":horse"),   #reg0=event,reg1=callbackid,reg2=uid, so the rest is the right arguments
+            (call_script,"script_db_callback_handle_join",":local_player_id",":current_map_id",":direction",":posx",":posy",":posz",":mcposx",":mcposy",":mcposz",":team_id",":troop_id",":hitpoints",":horse"),   #reg0=event,reg1=callbackid,reg2=uid, so the rest is the right arguments
 
 			
         (try_end),
@@ -5519,6 +5615,12 @@ scripts = [
             (eq,":callback_id",ow_db_callback_equip_agent),#agent of given player (localid) shall be equipped
 			(player_get_agent_id,":agent",reg3),#get the agent to given local id
             (call_script,"script_equip_player_agent",":agent",reg4,reg5,reg6,reg7,reg8,reg9,reg10,reg11,reg12,reg13,reg14,reg15,reg16),#reg0:event, reg1:callback,reg2:uid,reg3:localid, rest is inventory
+		(try_end),
+	(else_try),
+		(eq,":fired_event",ow_db_event_load_maincamp),#maincamps info received.
+		(try_begin),
+			(eq,":callback_id",ow_db_callback_place_maincamp_flags),#maincamp info should be used to place maincamp flags
+			(call_script,"script_db_callback_place_maincamp_flags",reg2,reg3,reg4,reg5,reg6,reg7,reg8,reg9,reg10,reg11,reg12,reg13,reg14),#reg0:event,reg1:callback,reg2:data. limit on 3 maincamps at the moment...
 		(try_end),
     (try_end),
 #OPEN WORLD END ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

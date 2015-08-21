@@ -3356,6 +3356,7 @@ mission_templates = [
 ("ow_master_server",mtf_team_fight,-1,"the master server handling initial join requests",[],[
     (ti_once,0,0,[],[
         (assign,"$uid",-1),#init unique id with -1 as client.
+		(assign,"$islobby",1),#we are in lobby
         #(assign,"$showflag",0),
 		(set_show_messages,1),
     ]),
@@ -3484,6 +3485,9 @@ mission_templates = [
           (39,mtef_visitor_source,0,aif_start_alarmed,10,[]),
 
           (40,mtef_visitor_source,0,aif_start_alarmed,10,[]),
+		  (41,mtef_visitor_source,0,aif_start_alarmed,10,[]),
+		  (42,mtef_visitor_source,0,aif_start_alarmed,10,[]),
+		  
 #         (1,0,0,0,1,[]),
 #    (2,0,0,0,1,[]),
 #    (4,0,0,0,1,[]),
@@ -3535,6 +3539,7 @@ mission_templates = [
 	  
     (ti_once,0,0,[],[
         (assign,"$uid",-1),#init unique id with -1 as client.
+		(assign,"$islobby",0),#we are not in lobby
         #(assign,"$showflag",0),
 		(set_show_messages,1),
     ]),
@@ -3582,6 +3587,7 @@ mission_templates = [
 			#prints error in console (invalid player id, -1), but works (with only one player tested).
 			(agent_get_player_id,":player",":agent_no"),
 			(player_slot_eq, ":player", slot_player_first_spawn, 1),#is this players first spawn on this server ? if yes, he travelled here and we have to equip him. if not, he just respawned here
+			(agent_set_visibility, ":agent_no",0), # we DONT want to see naked guys O.o
 			(player_get_unique_id,":uid", ":player"),
 			(str_store_player_username, s0,":player"),
 			(call_script,"script_db_load_inventory",":uid",":player",ow_db_callback_equip_agent),
@@ -3592,6 +3598,7 @@ mission_templates = [
             (multiplayer_get_my_player,":my_player_id"),
 			(player_get_agent_id,":my_agent",":my_player_id"),
             (eq,":my_agent",":agent_no"),#if i am the one who joined recently
+			(agent_set_visibility, ":agent_no",1), # we DONT want to see naked guys O.o
             (str_store_string,s1,"@joined server"),
 			(display_message,"@i am the spawned agent"),
 
@@ -3652,7 +3659,11 @@ mission_templates = [
 #           (val_add, "$g_number_of_flags", 1),
 
            (call_script,"script_multiplayer_initalise_flags_common"),
-           
+		   
+           #piluspalus: the maincamps
+		   (store_current_scene,":sc"),
+		   (call_script,"script_db_get_maincamps_info",":sc",ow_worldinstance,ow_db_callback_place_maincamp_flags),
+		
          (else_try),
            #these three lines both used in calculation of $g_number_of_flags and below part removing of initially placed flags
            #(assign, "$g_number_of_flags", 2),piluspalus CHANGE:
@@ -3686,6 +3697,9 @@ mission_templates = [
          (call_script, "script_multiplayer_move_moveable_objects_initial_positions"),
          #MM
          (call_script, "script_multiplayer_mm_after_mission_start_common"),
+		 
+		 
+		 
     ]),
     (ti_before_mission_start, 0, 0, [],
     [
