@@ -22,16 +22,39 @@ from ID_animations import *
 
 scripts = [
 #OPEN WORLD-------------------------------------------------------------------------------------------------------------
-
+	
+	#script_clean_regs
+	#INPUT
+	#OUTPUT
+	("clean_regs",[
+		(assign,reg0,-1),
+		(assign,reg1,-1),
+		(assign,reg2,-1),
+		(assign,reg3,-1),
+		(assign,reg4,-1),
+		(assign,reg5,-1),
+		(assign,reg6,-1),
+		(assign,reg7,-1),
+		(assign,reg10,-1),
+		(assign,reg11,-1),
+		(assign,reg12,-1),
+		(assign,reg13,-1),
+		(assign,reg14,-1),
+		(assign,reg15,-1),
+		(assign,reg16,-1),
+		(assign,reg17,-1),
+	]),
+	
 	#script_db_test
 	#INPUT
 	#OUTPUT
     ("db_test",[
-			(assign,reg0,ow_db_event_test_connection),
-			(assign,reg1, 1),
-			(str_store_string, s0, "@test"),
-	        (str_store_string,s1,"str_ow_webserver_url"),
-			(send_message_to_url,"@{s1}?uniqueid={reg1}&event={reg0}&username={s0}"),#send http request
+			(assign,reg44,ow_db_event_test_connection),
+			(assign,reg45, 1),
+			(str_store_string, s11, "@test"),
+	        (str_store_string,s10,"str_ow_webserver_url"),
+			(send_message_to_url,"@{s10}?uniqueid={reg45}&event={reg44}&username={s11}"),#send http request
+			(call_script,"script_clean_regs"),
 	]),
 
     #script_get_nearest_entry_point_to_pos
@@ -91,6 +114,7 @@ scripts = [
         #(display_message,"@db_load_player_data executed with uid {reg0} and local id {reg1}"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}"),#send http request
         #(display_message,"@sent message: {s0}?uniqueid={reg0}&localid={reg1}&event=7&username={s0}&callbackid={reg2}" ),
+		(call_script,"script_clean_regs"),
     ]),
 
 
@@ -111,6 +135,7 @@ scripts = [
         (str_store_string,s1,"str_ow_webserver_url"),
 		(display_message,"@insert player executed"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}&worldinstanceid={reg4}"),#send http request
+		(call_script,"script_clean_regs"),
 
     ]),
 
@@ -134,6 +159,7 @@ scripts = [
         (assign,reg10,ow_db_event_update_agent),
         (str_store_string,s10,"str_ow_webserver_url"),
         (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&teamid={reg1}&troopid={reg2}&hitpoints={reg3}"),#send http request
+		(call_script,"script_clean_regs"),
     ]),
     #script_db_update_agent
     #INPUT: unique_id,username in s0,local_id
@@ -153,6 +179,7 @@ scripts = [
             (str_store_string,s10,"str_ow_webserver_url"),
             (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&teamid={reg1}&troopid={reg2}&hitpoints={reg3}"),#send http request
         (try_end),
+		(call_script,"script_clean_regs"),
     ]),
     #script_db_load_agent
     #INPUT: unique_id,username in s0,local_id,callback_id
@@ -168,6 +195,7 @@ scripts = [
         (assign,reg3,ow_db_event_load_agent),
         (str_store_string,s1,"str_ow_webserver_url"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}"),#send http request
+		(call_script,"script_clean_regs"),
     ]),
     ##AGENT END
 
@@ -210,6 +238,7 @@ scripts = [
             (str_store_string,s10,"str_ow_webserver_url"),
             (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}&w1optval={reg11}&w2optval={reg12}&w3optval={reg13}&w4optval={reg14}"),#send http request
         (try_end),
+		(call_script,"script_clean_regs"),
     ]),
 
     #script_db_change_inventory
@@ -240,6 +269,7 @@ scripts = [
         #(display_message,"@db_update_inventory executed with uid {reg0} and username {s0}"),
         (str_store_string,s10,"str_ow_webserver_url"),
         (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg10}&username={s0}&w1={reg1}&w2={reg2}&w3={reg3}&w4={reg4}&head={reg5}&body={reg6}&leg={reg7}&hand={reg8}&horse={reg9}&w1optval={reg11}&w2optval={reg12}&w3optval={reg13}&w4optval={reg14}"),#send http request
+		(call_script,"script_clean_regs"),
     ]),
 
 
@@ -260,6 +290,7 @@ scripts = [
         #(display_message,"@ow_db_event_load_inventory executed "),
         (str_store_string,s1,"str_ow_webserver_url"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}"),#send http request
+		(call_script,"script_clean_regs"),
     ]),
 
     ##INVENTORY END
@@ -282,6 +313,7 @@ scripts = [
         (str_store_string,s1,"str_ow_webserver_url"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}&location={reg4}"),#send http request
         #(display_message,"@try to reserve slot"),
+		(call_script,"script_clean_regs"),
     ]),
 
     #script_db_reverse_slot
@@ -294,6 +326,7 @@ scripts = [
         (assign,reg3,ow_db_event_reverse_slot),
         (str_store_string,s1,"str_ow_webserver_url"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&event={reg3}&username={s0}"),#send http request
+		(call_script,"script_clean_regs"),
     ]),
 	
 	#script_db_get_maincamps_info
@@ -306,6 +339,7 @@ scripts = [
         (assign,reg3,ow_db_event_load_maincamp),
         (str_store_string,s1,"str_ow_webserver_url"),
         (send_message_to_url,"@{s1}?uniqueid=0&event={reg3}&username=server&sceneid={reg0}&worldinstance={reg1}&callbackid={reg2}"),#send http request
+		(call_script,"script_clean_regs"),
     ]),
 	
     ##CALLBACKS
@@ -549,7 +583,7 @@ scripts = [
         (str_store_string,s10,"str_ow_webserver_url"),
         (assign,reg3,ow_db_event_update_map),
         (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg3}&username={s0}&mapid={reg1}"),#send http request
-
+		(call_script,"script_clean_regs"),
     ]),
 
 
@@ -576,6 +610,7 @@ scripts = [
 
         #do a post request saving position and direction
         #(display_message,"@script_db_save_travel executed"),
+		(call_script,"script_clean_regs"),
     ]),
 
     #script_db_load_travel
@@ -588,6 +623,7 @@ scripts = [
         (str_store_string,s10,"str_ow_webserver_url"),
         (assign,reg3,ow_db_event_load_travel),
         (send_message_to_url,"@{s10}?uniqueid={reg0}&event={reg3}&username={s0}&localid={reg1}&callbackid={reg2}"),#send http request
+		(call_script,"script_clean_regs"),
     ]),
 	
 	#script_fake_travel_to
@@ -623,6 +659,39 @@ scripts = [
         (assign,reg2,":passwordlength"),
 
         (str_store_string,s2, "@will travel to the"),
+		
+		 #directives. time to get read from exe trolol
+        (assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		(assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		(assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		(assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		(assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		(assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		(assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		(assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		(assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		(assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
+		
         #(display_message,"@leaving server!"),
 
         #(store_current_scene,reg0),
@@ -653,6 +722,11 @@ scripts = [
 			(ge,":agent_id",0),#valid agent
 			(multiplayer_send_int_to_server, ow_multiplayer_event_fade_out_agent, ":agent_id"),#fade out agent (server cares)
 		(try_end),
+		
+		 #directives
+        (assign,reg0,":iplength"),
+        (assign,reg1,":port"),
+        (assign,reg2,":passwordlength"),
         (finish_mission, 0.1),
 
 
