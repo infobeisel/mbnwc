@@ -49,6 +49,10 @@ ow_db_callback_set_lobby_presentations = 2
 ow_db_callback_equip_agent = 3
 ow_db_callback_place_maincamp_flags = 4
 
+ow_db_callback_travel_continue_with_update_map = 5
+ow_db_callback_travel_continue_with_change_travel = 6
+ow_db_callback_travel_continue_with_reserve_slot = 7
+
 ow_multiplayer_map_edge_entry_points = 43
 
 ow_multiplayer_map_travel_dir_north = 0 #the player travels in this direction

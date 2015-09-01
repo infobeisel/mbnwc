@@ -10,7 +10,7 @@ strings = [
 #OPEN WORLD-------------------------------------------------------------------------------------------------------------
     ("ow_new_player_welcome", "welcome newbie {s0} to this open world featured mod! Please choose your faction and troop (Remember: with your name {s0} you can only choose once), then your spawn point! "),
     ("ow_spawn", "spawn"),
-    ("ow_webserver_url","http://192.168.2.116/ow.php"),
+    ("ow_webserver_url","http://nwcow.ddns.net/ow.php"),
 
     #travel texts for travel passages
     ("ow_travel_text_north","to the North"),

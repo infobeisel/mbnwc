@@ -449,6 +449,9 @@ scripts = [
 #        (store_script_param,":hand",17),
         (store_script_param,":horse",13),
         (assign,":spawn_immediately",0),
+		
+		(assign, reg1,":direction"),
+		(display_message,"@travel direction of joined player: {reg1}"),
 
         ##POSITION
         #if he came from the south, negate the y coordinate, if he came from east, the x...
@@ -5587,7 +5590,7 @@ scripts = [
             (assign,":team_id",reg12),
             (assign,":troop_id",reg13),
             (assign,":hitpoints",reg14),
-			(assign,":horse",reg23),
+			(assign,":horse",reg15),
 
             (display_message,"@before call :playerid:{reg3},dbmap:{reg4},traveldir:{reg5},posx:{reg6},posy:{reg7},posz:{reg8},mcposx:{reg9},mcposy:{reg10},mcposz:{reg11},team_id:{reg12},troop_id:{reg13},hitpoints:{reg14},horse{reg23}"),
 

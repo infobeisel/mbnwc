@@ -1234,6 +1234,8 @@ scene_props = [
      ]),
      ("travel_passage_west",sokf_invisible|spr_use_time(1),"barrier_20m","bo_barrier_20m",[check_travel_portal_use_trigger,
      ]),
+	 
+	 ("nwc_fence",0,"nwc_fence","0",[]),
 
 #OPEN WORLD END ----------------------------------------------------------------------------------------------------------------------
 

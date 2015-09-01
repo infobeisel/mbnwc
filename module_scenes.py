@@ -53,7 +53,7 @@ scenes = [
 
   ("ow_scene_2",sf_generate,"none", "none", (0,0),(100,100),-100,"0x000000023002a1ba0004210900003ca000006a8900007a7b",
      [],[],"outer_terrain_plain"),
-  ("ow_scene_3",sf_generate,"none", "none", (0,0),(100,100),-100,"0x000000023002a1ba0004210900003ca000006a8900007a7b",
+  ("ow_scene_3",sf_generate,"none", "none", (0,0),(100,100),-100,"0x00000001300005000008621800007b270000060500000d0b",
      [],[],"outer_terrain_plain"),
 
 

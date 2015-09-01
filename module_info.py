@@ -4,3 +4,4 @@
 
 export_dir = "../NewWorldConflict/"
 #export_dir = "C:/Program Files/Mount&Blade/Modules/Native/"
+load_module_resource = 1
