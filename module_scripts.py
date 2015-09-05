@@ -574,7 +574,7 @@ scripts = [
 
     #script_db_change_current_map
     #INPUT unique_player_id,player_username in s0,  current scene id,
-    #saves given player_id's current server in db (where he is currently joined)
+    #saves given player_id's current server in db 
     ("db_change_current_map",[
         (store_script_param_1, ":unique_player_id"),
         (store_script_param_2, ":map_id"),
@@ -661,36 +661,12 @@ scripts = [
         (str_store_string,s2, "@will travel to the"),
 		
 		 #directives. time to get read from exe trolol
-        (assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
-		(assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
-		(assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
-		(assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
-		(assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
-		(assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
-		(assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
-		(assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
-		(assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
-		(assign,reg0,":iplength"),
-        (assign,reg1,":port"),
-        (assign,reg2,":passwordlength"),
+		 (try_for_range,":tmp",0,3000),
+			(assign,reg0,":iplength"),
+			(assign,reg1,":port"),
+			(assign,reg2,":passwordlength"),
+		 (try_end),
+        
 		
         #(display_message,"@leaving server!"),
 
@@ -727,7 +703,7 @@ scripts = [
         (assign,reg0,":iplength"),
         (assign,reg1,":port"),
         (assign,reg2,":passwordlength"),
-        (finish_mission, 0.1),
+        (finish_mission, 0),
 
 
     ]),

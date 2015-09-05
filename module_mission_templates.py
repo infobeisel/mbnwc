@@ -3565,6 +3565,10 @@ mission_templates = [
 		#(multiplayer_send_2_int_to_player, ":new_player_player_no", ow_multiplayer_event_travelled_joined, ":unique_player_id", ":new_player_player_no"),
 		
 		(str_store_player_username, s0, ":new_player_player_no"),
+		 
+		(store_current_scene,":cur_scene"),#be sure to update the map this player is located on.
+		(call_script,"script_db_change_current_map",":unique_player_id",":cur_scene"),
+		
 		(call_script,"script_db_load_player_data",":unique_player_id",":new_player_player_no",ow_db_callback_handle_join),#will do the rest
 
     #conquest
