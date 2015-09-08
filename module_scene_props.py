@@ -1235,7 +1235,16 @@ scene_props = [
      ("travel_passage_west",sokf_invisible|spr_use_time(1),"barrier_20m","bo_barrier_20m",[check_travel_portal_use_trigger,
      ]),
 	 
-	 ("nwc_fence",0,"nwc_fence","0",[]),
+	
+
+	 ("nwc_fence",0,"nwc_fence","bo_NWC_fence",[]),
+	 ("nwc_fence_post",0,"nwc_fence","bo_nwc_fence_post",[]),
+	 ("nwc_stand",0,"nwc_fence","bo_nwc_stand",[]),
+	 ("nwc_stand.1",0,"nwc_stand.1","0",[]),
+	 ("nwc_large_tent",0,"nwc_large_tent","0",[]),
+	 ("nwc_large_tent.1",0,"nwc_large_tent.1","0",[]),
+	 ("nwc_large_tent.2",0,"nwc_large_tent.2","0",[]),
+	 ("nwc_large_tent.3",0,"nwc_large_tent.3","0",[]),
 
 #OPEN WORLD END ----------------------------------------------------------------------------------------------------------------------
 
