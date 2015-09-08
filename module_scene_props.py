@@ -1238,8 +1238,8 @@ scene_props = [
 	
 
 	 ("nwc_fence",0,"nwc_fence","bo_NWC_fence",[]),
-	 ("nwc_fence_post",0,"nwc_fence","bo_nwc_fence_post",[]),
-	 ("nwc_stand",0,"nwc_fence","bo_nwc_stand",[]),
+	 ("nwc_fence_post",0,"nwc_fence_post","bo_nwc_fence_post",[]),
+	 ("nwc_stand",0,"nwc_stand","bo_nwc_stand",[]),
 	 ("nwc_stand.1",0,"nwc_stand.1","0",[]),
 	 ("nwc_large_tent",0,"nwc_large_tent","0",[]),
 	 ("nwc_large_tent.1",0,"nwc_large_tent.1","0",[]),
