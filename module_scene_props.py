@@ -1237,15 +1237,6 @@ scene_props = [
 	 
 	
 
-	 ("nwc_fence",0,"nwc_fence","bo_NWC_fence",[]),
-	 ("nwc_fence_post",0,"nwc_fence_post","bo_nwc_fence_post",[]),
-	 ("nwc_stand",0,"nwc_stand","bo_nwc_stand",[]),
-	 ("nwc_stand.1",0,"nwc_stand.1","0",[]),
-	 ("nwc_large_tent",0,"nwc_large_tent","0",[]),
-	 ("nwc_large_tent.1",0,"nwc_large_tent.1","0",[]),
-	 ("nwc_large_tent.2",0,"nwc_large_tent.2","0",[]),
-	 ("nwc_large_tent.3",0,"nwc_large_tent.3","0",[]),
-
 #OPEN WORLD END ----------------------------------------------------------------------------------------------------------------------
 
   ("invalid_object",0,"question_mark","0", []),
@@ -4451,6 +4442,20 @@ scene_props = [
       (scene_prop_set_slot,":instance_id",scene_prop_slot_just_fired,1),
     ]),
   ]),
+  
+  
+  ##new world conflict
+  
+
+	 ("nwc_fence",0,"nwc_fence","bo_nwc_fence",[]),
+	 ("nwc_fence_post",0,"nwc_fence_post","bo_nwc_fence_post",[]),
+	 ("nwc_stand",0,"nwc_stand","bo_nwc_stand",[]),
+	 ("nwc_stand.1",0,"nwc_stand.1","0",[]),
+	 ("nwc_large_tent",0,"nwc_large_tent","0",[]),
+	 ("nwc_large_tent.1",0,"nwc_large_tent.1","0",[]),
+	 ("nwc_large_tent.2",0,"nwc_large_tent.2","0",[]),
+	 ("nwc_large_tent.3",0,"nwc_large_tent.3","0",[]),
+	 
  
   ("scene_props_end", 0,"0" ,"0" , []),
 ]
