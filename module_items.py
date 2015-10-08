@@ -143,6 +143,10 @@ items = [
 180 , weight(3.0)|difficulty(0)|spd_rtng(86) | weapon_length(50)|swing_damage(20 , blunt) | thrust_damage(12,  blunt),imodbits_none ],
 
 
+#nwc
+["independent_kentucky_rifle", "Kentucky Rifle", [("kentucky_rifle",0)], itp_type_crossbow |itp_merchandise|itp_primary|itp_two_handed|itp_cant_reload_while_moving_mounted|itp_cant_reload_while_moving|itp_next_item_as_melee ,itcf_shoot_musket|itcf_carry_crossbow_back, 
+683 , weight(3.0)|difficulty(0)|spd_rtng(25) | shoot_speed(250) | thrust_damage(100 ,pierce)|max_ammo(1)|accuracy(75),imodbits_none,[]],
+
 # Rifles
 # Russian
 ["russian_rifle_1805", "Rifle", [("Russian_rifle_1805",0)], itp_type_crossbow |itp_merchandise|itp_primary|itp_two_handed|itp_cant_reload_on_horseback|itp_cant_reload_while_moving|itp_next_item_as_melee ,itcf_shoot_musket|itcf_carry_crossbow_back, 
@@ -326,6 +330,21 @@ items = [
  ["british_officer_sword","Officer Sword", [("Russian_officer_sword",0),("British_officer_sword_scabbard",ixmesh_carry)], itp_type_one_handed_wpn|itp_merchandise|itp_primary, itc_longsword|itcf_carry_sword_left_hip|itcf_show_holster_when_drawn, 
 210 , weight(1.5)|difficulty(0)|spd_rtng(95) | weapon_length(100)|swing_damage(32 , cut) | thrust_damage(29 ,  pierce),imodbits_sword_high ],
  
+ 
+["native_iroquois_tomahawk", "Iroquois Tomahawks", [("iroquois_tomahawk",0)], itp_type_thrown |itp_merchandise|itp_primary|itp_next_item_as_melee,itcf_throw_axe,
+360, weight(5)|difficulty(2)|spd_rtng(99) | shoot_speed(18) | thrust_damage(35,cut)|max_ammo(4)|weapon_length(53),imodbits_thrown_minus_heavy ],
+
+["native_iroquois_tomahawk_melee", "Iroquois Tomahawk", [("iroquois_tomahawk",0)], itp_type_one_handed_wpn |itp_primary|itp_bonus_against_shield,itc_scimitar,
+490, weight(1)|difficulty(3)|spd_rtng(98) | swing_damage(29,cut)|weapon_length(53),imodbits_thrown_minus_heavy ],
+
+["native_cherokee_tomahawk", "Cherokee Tomahawks", [("cheroke_tomahawk",0)], itp_type_thrown |itp_merchandise|itp_primary|itp_next_item_as_melee,itcf_throw_axe,
+360, weight(5)|difficulty(2)|spd_rtng(99) | shoot_speed(18) | thrust_damage(35,cut)|max_ammo(4)|weapon_length(53),imodbits_thrown_minus_heavy ],
+
+["native_cherokee_tomahawk_melee", "Cherokee Tomahawk", [("cheroke_tomahawk",0)], itp_type_one_handed_wpn |itp_primary|itp_bonus_against_shield,itc_scimitar,
+490, weight(1)|difficulty(3)|spd_rtng(98) | swing_damage(29,cut)|weapon_length(53),imodbits_thrown_minus_heavy ],
+
+["native_headache_club", "War Club", [("Headache_Club",0)], itp_type_one_handed_wpn| itp_primary|itp_wooden_parry|itp_wooden_attack, itc_scimitar, 0 , weight(2.5)|difficulty(0)|spd_rtng(95) | weapon_length(95)|swing_damage(11 , blunt) | thrust_damage(0 ,  pierce),imodbits_none ],
+
  
 #Austrian
  ["austrian_infantry_briquet","Sword Bayonet", [("Austrian_infantry_briquet",0),("Austrian_infantry_briquet_scabbard",ixmesh_carry)], itp_type_one_handed_wpn|itp_merchandise|itp_primary, itc_longsword|itcf_carry_sword_left_hip|itcf_show_holster_when_drawn, 

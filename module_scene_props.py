@@ -4447,14 +4447,14 @@ scene_props = [
   ##new world conflict
   
 
-	 ("nwc_fence",0,"nwc_fence","bo_nwc_fence",[]),
-	 ("nwc_fence_post",0,"nwc_fence_post","bo_nwc_fence_post",[]),
-	 ("nwc_stand",0,"nwc_stand","bo_nwc_stand",[]),
-	 ("nwc_stand.1",0,"nwc_stand.1","0",[]),
-	 ("nwc_large_tent",0,"nwc_large_tent","0",[]),
-	 ("nwc_large_tent.1",0,"nwc_large_tent.1","0",[]),
-	 ("nwc_large_tent.2",0,"nwc_large_tent.2","0",[]),
-	 ("nwc_large_tent.3",0,"nwc_large_tent.3","0",[]),
+#	 ("nwc_fence",0,"nwc_fence","bo_nwc_fence",[]),
+#	 ("nwc_fence_post",0,"nwc_fence_post","bo_nwc_fence_post",[]),
+#	 ("nwc_stand",0,"nwc_stand","bo_nwc_stand",[]),
+#	 ("nwc_stand.1",0,"nwc_stand.1","0",[]),
+#	 ("nwc_large_tent",0,"nwc_large_tent","0",[]),
+#	 ("nwc_large_tent.1",0,"nwc_large_tent.1","0",[]),
+#	 ("nwc_large_tent.2",0,"nwc_large_tent.2","0",[]),
+#	 ("nwc_large_tent.3",0,"nwc_large_tent.3","0",[]),
 	 
  
   ("scene_props_end", 0,"0" ,"0" , []),

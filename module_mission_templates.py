@@ -3603,7 +3603,12 @@ mission_templates = [
 			(player_get_agent_id,":my_agent",":my_player_id"),
             (eq,":my_agent",":agent_no"),#if i am the one who joined recently
 			(agent_set_visibility, ":agent_no",1), # we DONT want to see naked guys O.o
-            (str_store_string,s1,"@joined server"),
+			
+			#directive time to get read from exe . trolol
+			(try_for_range,":tmp",0,3000),
+				(str_store_string,s1,"@joined server"),
+			 (try_end),
+		 
 			(display_message,"@i am the spawned agent"),
 
 		(try_end),

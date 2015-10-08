@@ -435,12 +435,24 @@ troops = [
    [itm_austrian_arty,itm_aus_arty_bicorn,itm_austrian_officer_boots,itm_ramrod,itm_bullets,itm_austrian_musket],
    def_attrib|level(20),wpex(50,5,50,5,80,5),knows_common|knows_riding_1|knows_ironflesh_3|knows_power_strike_2|knows_athletics_3,swadian_face_middle_1, swadian_face_old_2],
    
+
+   
 #Multiplayer troops
 
   ### BRITAIN ###
+  #original
+  #["british_infantry","33rd Regiment of Foot","Line Infantry",tf_guarantee_all,0,0,fac_britain,
+   #[itm_british_infantry_ranker,itm_french_voltigeur_officer_pants,itm_33_stovepipe,itm_british_brown_bess,itm_bullets],
+   #def_attrib_multiplayer|level(20),wpex(50,5,130,5,150,5),knows_common|knows_ironflesh_3|knows_power_strike_3|knows_athletics_3,swadian_face_middle_1, swadian_face_old_2],
   ["british_infantry","33rd Regiment of Foot","Line Infantry",tf_guarantee_all,0,0,fac_britain,
-   [itm_british_infantry_ranker,itm_french_voltigeur_officer_pants,itm_33_stovepipe,itm_british_brown_bess,itm_bullets],
-   def_attrib_multiplayer|level(20),wpex(50,5,130,5,150,5),knows_common|knows_ironflesh_3|knows_power_strike_3|knows_athletics_3,swadian_face_middle_1, swadian_face_old_2],
+   [itm_british_infantry_ranker,itm_french_voltigeur_officer_pants,itm_independent_kentucky_rifle,itm_native_iroquois_tomahawk,itm_native_iroquois_tomahawk_melee,itm_native_cherokee_tomahawk,itm_native_cherokee_tomahawk_melee,itm_native_headache_club],
+   def_attrib_multiplayer|level(20),wpex(50,5,130,5,150,5),knows_common|knows_ironflesh_3|knows_power_strike_3|knows_athletics_3,khergit_face_middle_1, khergit_face_old_2],
+  #New World Conflict Troops
+  #["british_cherokee_warrior","Cherokee Warrior","Cherokee Warriors",tf_guarantee_all,0,0,fac_britain,
+  # [itm_british_infantry_ranker,itm_french_voltigeur_officer_pants,itm_independent_kentucky_rifle,itm_native_iroquois_tomahawk,itm_native_iroquois_tomahawk_melee,itm_native_cherokee_tomahawk,itm_native_cherokee_tomahawk_melee,itm_native_headache_club],
+  # def_attrib_multiplayer|level(20),wpex(50,5,130,5,150,5),knows_common|knows_ironflesh_3|knows_power_strike_3|knows_athletics_3,khergit_face_middle_1, khergit_face_old_2],
+   
+   
   ["british_infantry_nco","33rd Regiment of Foot","Ensign",tf_guarantee_all,0,0,fac_british_ranks,
    [itm_british_infantry_sarge,itm_rus_dragoon_pants1,itm_33_stovepipe,itm_br_cavalry_gloves_short,itm_britain_colour_33rd_regt,itm_britain_colour_33rd_king,itm_british_musician_sword],
    def_attrib_multiplayer|level(20),wpex(50,5,130,5,50,5),knows_common|knows_ironflesh_3|knows_power_strike_3|knows_athletics_3,swadian_face_middle_1, swadian_face_old_2],
@@ -1215,6 +1227,9 @@ troops = [
   ["austrian_arty_alt_commander","Prinz zu Lothringen Nr. 7 Artillerie","Officer",tf_guarantee_all,0,0,fac_austrian_ranks,
    [itm_austrian_arty_officer,itm_aus_arty_cap_bicorn,itm_austrian_officer_boots,itm_russian_officer_sword,itm_officer_gloves,itm_spyglass,itm_ramrod,itm_arty_horse_howitzer_austrian],
    def_attrib_multiplayer|level(20),wpex(80,5,30,5,30,5),knows_common|knows_riding_1|knows_ironflesh_3|knows_power_strike_2|knows_athletics_3,swadian_face_middle_1, swadian_face_old_2],
+   
+
+   
  
   ["multiplayer_end","{!}multiplayer_end","{!}multiplayer_end", 0, 0, 0, fac_austria, [], 0, 0, 0, 0, 0],
   
@@ -1499,6 +1514,11 @@ troops = [
   [itm_french_dragoon_pants,itm_french_artillery_train_shako,itm_french_briquet],
   def_attrib|level(5),wp(20),knows_inventory_management_10, man_face_young_1, man_face_older_2],
   ["merchants_end","merchants_end","merchants_end",tf_hero, 0,0, fac_commoners,[],def_attrib|level(2),wp(20),knows_inventory_management_10,0],
+  
+
+
+
+  
   
 ]
 
