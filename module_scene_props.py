@@ -1208,7 +1208,7 @@ check_travel_portal_use_trigger = (ti_on_scene_prop_use, [
     (agent_get_player_id,":player_id",":agent_id"),
     (assign, reg1,  ":player_id"),
 
-    (display_message,"@!travel portal was activated by agent {reg0} by player {reg1}"),
+    #(display_message,"@!travel portal was activated by agent {reg0} by player {reg1}"),
 
     #send event to client
     (get_max_players, ":num_players"),

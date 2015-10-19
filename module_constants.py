@@ -37,6 +37,7 @@ ow_db_event_load_travel = 11
 ow_db_event_update_map = 12
 ow_db_event_test_connection = 15
 ow_db_event_load_maincamp = 16
+ow_db_event_get_neighbourscenes = 17
 
 
 #configurables (should be located maybe in "module_variables"
@@ -52,6 +53,7 @@ ow_db_callback_place_maincamp_flags = 4
 ow_db_callback_travel_continue_with_update_map = 5
 ow_db_callback_travel_continue_with_change_travel = 6
 ow_db_callback_travel_continue_with_reserve_slot = 7
+ow_db_callback_neighbourscenes = 8
 
 ow_multiplayer_map_edge_entry_points = 43
 
@@ -72,6 +74,8 @@ ow_multiplayer_scenes_end = "scn_ow_multiplayer_scenes_end"
 ow_multiplayer_scene_names_begin = "str_ow_scene_1"
 ow_multiplayer_scene_names_end = "str_ow_multiscene_names_end"
 
+ow_multiplayer_short_scene_names_begin = "ow_scene_1_short"
+ow_multiplayer_short_scene_names_end = "str_ow_multiscene_short_names_end"
 
 
 

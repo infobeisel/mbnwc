@@ -3372,7 +3372,7 @@ mission_templates = [
         (player_get_unique_id, ":unique_player_id", ":new_player_player_no"),
         ##send the player his unique id
         (multiplayer_send_2_int_to_player, ":new_player_player_no", ow_multiplayer_event_master_player_joined_prsnt,":unique_player_id",ow_worldinstance),
-		(display_message,"@a player joined the server"),
+		#(display_message,"@a player joined the server"),
 
     ]),
 
@@ -3394,7 +3394,7 @@ mission_templates = [
             #(display_message,"@chosen flag {reg0}, should be {reg1}"),
             (try_begin),
                 (eq,reg0,multi_data_flag_owner_end),#wants to spawn at maincamp
-                (display_message,"@ok spawn at maincamp"),
+               # (display_message,"@ok spawn at maincamp"),
                 (assign,":travelflag", ow_multiplayer_map_travel_maincamp),
                 (player_get_unique_id, ":unique_player_id", ":cur_player"),
                 (multiplayer_send_3_int_to_player, ":cur_player", ow_multiplayer_event_travel, ":travelflag", ":unique_player_id",1),
@@ -3434,6 +3434,13 @@ mission_templates = [
     [
 		(call_script,"script_db_test"),
     ]),
+	(ti_escape_pressed, 0, 0, [],
+       [
+         (neg|is_presentation_active, "prsnt_multiplayer_escape_menu"),
+         (neg|is_presentation_active, "prsnt_multiplayer_stats_chart"),
+         (eq, "$g_waiting_for_confirmation_to_terminate", 0),
+         (start_presentation, "prsnt_multiplayer_escape_menu"),
+         ]),
 
 
 ]),
@@ -3605,11 +3612,11 @@ mission_templates = [
 			(agent_set_visibility, ":agent_no",1), # we DONT want to see naked guys O.o
 			
 			#directive time to get read from exe . trolol
-			(try_for_range,":tmp",0,3000),
+			(try_for_range,":tmp",0,13000),
 				(str_store_string,s1,"@joined server"),
 			 (try_end),
 		 
-			(display_message,"@i am the spawned agent"),
+			#(display_message,"@i am the spawned agent"),
 
 		(try_end),
 
@@ -4333,10 +4340,10 @@ mission_templates = [
          # Vincenzo begin
          (store_mission_timer_a, ":current_time"),
          (store_sub, ":respawntime", ":current_time", "$g_hq_last_spawn_wave"),
-         (display_message,"@respawn?"),
+        # (display_message,"@respawn?"),
          (this_or_next|le, "$g_hq_last_spawn_wave", "$g_multiplayer_respawn_period"),
          (gt, ":respawntime", "$g_multiplayer_respawn_period"),
-         (display_message,"@respawning agent!!"),
+        # (display_message,"@respawning agent!!"),
          (assign,":flags_team_1",1),
          (assign,":flags_team_2",11),
          (assign,":end_cond","$g_number_of_flags"),
@@ -4405,7 +4412,7 @@ mission_templates = [
 				(player_get_slot,":flag_id",":player_no",slot_player_selected_flag),
 				(player_set_slot,":player_no",slot_player_selected_flag,-1),
 				(eq,":flag_id",multi_data_flag_owner_end),#means maincamp at the moment
-				(display_message,"@ok spawn at maincamp"),
+				#(display_message,"@ok spawn at maincamp"),
                 (assign,":travelflag", ow_multiplayer_map_travel_maincamp),
                 (player_get_unique_id, ":unique_player_id", ":player_no"),
                 (multiplayer_send_3_int_to_player, ":player_no", ow_multiplayer_event_travel, ":travelflag", ":unique_player_id",1),
@@ -4457,7 +4464,7 @@ mission_templates = [
 				 (try_end),             
 			   (try_end),
 			   (eq, ":spawn_new", 1),
-			   (display_message,"@equip agent"),
+			 #  (display_message,"@equip agent"),
 
 			   (call_script, "script_multiplayer_buy_agent_equipment", ":player_no"),
 			 
@@ -4523,7 +4530,7 @@ mission_templates = [
 			   # Vincenzo end
 			   
 			   #(eq,":should_spawn",1),
-			   (display_message,"@spawn agent vincenzo"),
+			   #(display_message,"@spawn agent vincenzo"),
 			   (player_spawn_new_agent, ":player_no", reg0),
 			   
 		    (try_end),

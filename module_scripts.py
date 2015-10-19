@@ -57,6 +57,26 @@ scripts = [
 			(call_script,"script_clean_regs"),
 	]),
 
+	
+	#script_db_get_neighbour_scene_ids
+	#INPUT: origin_scene_id,callback_id,worldinstanceid
+	#evaluates the given scene's (according to the worldinstanceid) 4 neighbour maps and returns them
+	("db_get_neighbour_scene_ids",[
+		(store_script_param_1,":origin_scene_id"),
+        (store_script_param_2,":callback_id"),
+        (store_script_param,":worldinstanceid",3),
+		(assign,reg0,":origin_scene_id"),
+        (assign,reg1,":worldinstanceid"),
+        (assign,reg2,":callback_id"),
+        (assign,reg3,ow_db_event_get_neighbourscenes),
+        (str_store_string,s1,"str_ow_webserver_url"),
+        #(display_message,"@db_load_player_data executed with uid {reg0} and local id {reg1}"),
+        (send_message_to_url,"@{s1}?uniqueid=0&event={reg3}&username=engine&callbackid={reg2}&worldinstance={reg1}&sceneid={reg0}"),#send http request
+	]),
+	
+	
+	
+	
     #script_get_nearest_entry_point_to_pos
     #INPUT: posx,posy,posz
     #OUTPUT: entry_point_no in reg0
@@ -72,7 +92,7 @@ scripts = [
         (assign,reg0,":posx"),
         (assign,reg1,":posy"),
         (assign,reg2,":posz"),
-        (display_message,"@wanted pos: {reg0},{reg1},{reg2}"),
+        #(display_message,"@wanted pos: {reg0},{reg1},{reg2}"),
         #init vals
         (assign,":chosen_dist",100000),
         (assign,":ret",-1),
@@ -84,7 +104,7 @@ scripts = [
             (position_get_y,reg1,pos1),
             (position_get_z,reg2,pos1),
             (assign,reg3,":entry_point_no"),
-            (display_message,"@temp pos: {reg0},{reg1},{reg2} and entry point no {reg3}"),
+            #(display_message,"@temp pos: {reg0},{reg1},{reg2} and entry point no {reg3}"),
 
             (get_distance_between_positions_in_meters, ":tmp_dist", pos1,pos0),
             (try_begin),
@@ -133,7 +153,7 @@ scripts = [
         (assign,reg3,ow_db_event_insert_player),
         (assign,reg4,":worldinstanceid"),
         (str_store_string,s1,"str_ow_webserver_url"),
-		(display_message,"@insert player executed"),
+		#(display_message,"@insert player executed"),
         (send_message_to_url,"@{s1}?uniqueid={reg0}&localid={reg1}&event={reg3}&username={s0}&callbackid={reg2}&worldinstanceid={reg4}"),#send http request
 		(call_script,"script_clean_regs"),
 
@@ -354,7 +374,7 @@ scripts = [
 		
 		
 		(assign,reg0,":maincampscount"),
-		(display_message,"@place maincamp flags executed with {reg0} maincamps!"),
+		#(display_message,"@place maincamp flags executed with {reg0} maincamps!"),
 		
 		(try_begin),
 			(gt,":maincampscount",0),#place one maincamp flag
@@ -385,7 +405,7 @@ scripts = [
 			(position_get_y,reg1,pos0),
 			(position_get_z,reg2,pos0),
 			(assign, reg3,":maincampteam1"),
-			(display_message,"@maincamp flag spawned at ({reg0},{reg1},{reg2}) for team {reg3}"),
+			#(display_message,"@maincamp flag spawned at ({reg0},{reg1},{reg2}) for team {reg3}"),
 			
 			(gt,":maincampscount",1),#place a second flag
 			(store_script_param, ":maincampteam2", 6),
@@ -415,7 +435,7 @@ scripts = [
 			(position_get_y,reg1,pos1),
 			(position_get_z,reg2,pos1),
 			(assign, reg3,":maincampteam2"),
-			(display_message,"@maincamp flag spawned at ({reg0},{reg1},{reg2}) for team {reg3}"),
+			#(display_message,"@maincamp flag spawned at ({reg0},{reg1},{reg2}) for team {reg3}"),
 			
 		(try_end),
 
@@ -439,16 +459,16 @@ scripts = [
         (store_script_param, ":passwordlength", 6),
         (try_begin),
             (eq,":reserved",1),
-            (display_message,"@slot reserved!"),
+            #(display_message,"@slot reserved!"),
             (player_get_agent_id,":agent_id",":local_id"),
             (call_script,"script_travel_to",":agent_id",":iplength",":port",":passwordlength"),
         (else_try),
 			(eq,":reserved",0),
             ##TODO ERROR DIALOG
-            (display_message,"@ERROR:SERVER FULL"),
+            (display_message,"@ERROR:TARGET SERVER FULL. Try again in a few minutes!"),
         (else_try),
 			(eq,":reserved",2),#targetmap = currentmap, no real travel necessary
-            (display_message,"@same map!"),
+            #(display_message,"@same map!"),
 			(player_get_agent_id,":agent_id",":local_id"),
             (call_script,"script_travel_to",":agent_id",":iplength",":port",":passwordlength"),
 			#(call_script,"script_fake_travel_to",":agent_id"),
@@ -485,7 +505,7 @@ scripts = [
         (assign,":spawn_immediately",0),
 		
 		(assign, reg1,":direction"),
-		(display_message,"@travel direction of joined player: {reg1}"),
+		#(display_message,"@travel direction of joined player: {reg1}"),
 
         ##POSITION
         #if he came from the south, negate the y coordinate, if he came from east, the x...
@@ -517,7 +537,7 @@ scripts = [
             (assign,":posy",":mcposy"),
             (assign,":posz",":mcposz"),
             (assign,":spawn_immediately",1),
-			(display_message,"@this player wants to respawn at maincamp"),
+			#(display_message,"@this player wants to respawn at maincamp"),
         (else_try),  #player traveled directly here. positions means nothing -> let him choose a spawn point
             (start_presentation,"prsnt_conquest_flag_select"),
             (assign,":spawn_immediately",0),#don't spawn him directly, let him choose.
@@ -535,7 +555,7 @@ scripts = [
             (try_begin),
                 (neq,":horse",-1),
                 (player_add_spawn_item,":local_player_id", ek_horse,":horse"),
-				(display_message,"@horse added"),
+				#(display_message,"@horse added"),
             (try_end),
 
             #evaluate spawn position
@@ -556,19 +576,42 @@ scripts = [
     # starts entry presentations for the player
     #INPUT
     ("db_callback_set_lobby_presentations",[
+		#param 1 uid dont care.
         (store_script_param,":localid",2),
         (store_script_param,":known",3),
         (try_begin),#player is not known
             (eq,":known",0),
 			(start_presentation,"prsnt_multiplayer_team_select"),
-			(display_message,"@i am not known"),
+			#(display_message,"@i am not known"),
         (else_try),#known
 			(start_presentation,"prsnt_multiplayer_team_select"),
-			(display_message,"@i am known"),
+			#(display_message,"@i am known"),
         (else_try),
-			(display_message,"@wtfffffffffffffffffffffffffffffflkahusdfiuasdklfjbajsdlvbnklasjnzbl<skub"),
+			#(display_message,"@wtfffffffffffffffffffffffffffffflkahusdfiuasdklfjbajsdlvbnklasjnzbl<skub"),
 		(try_end),
     ]),
+	
+	#script_db_callback_display_neighbourscene_names
+	#displays the neighbour scene names at the edges on the flag select map
+	#INPUT: sceneid_0,sceneid_1,sceneid_2,sceneid_3
+	("db_callback_display_neighbourscene_names",[
+		
+		#TODO: register in receive_url_script; find the 4 right overlay positions; get the new ow.php to the server :(
+		#(try_for_range,":i",1,5),
+		#	(store_script_param,":sceneid",":i"),
+		#	(store_sub,":string_id",":sceneid",ow_multiplayer_scenes_begin),
+		#	(val_add, ":string_id", ow_multiplayer_short_scene_names_begin),
+		#	(str_store_string, s11, "string_id"),
+		#	(create_text_overlay, reg0, "to {s11}"),
+		#	(position_set_x, pos51, 450),
+		#	(position_set_y, pos51, 80),
+		#	(overlay_set_position, reg0, pos51),
+		#	(position_set_x, pos51, 1500),
+		#	(position_set_y, pos51, 1500),
+		#	(overlay_set_size, reg0, pos51),
+		#(try_end),
+	]),
+		
 
     ##CALLBACKS END
 
@@ -661,7 +704,7 @@ scripts = [
         (str_store_string,s2, "@will travel to the"),
 		
 		 #directives. time to get read from exe trolol
-		 (try_for_range,":tmp",0,3000),
+		 (try_for_range,":tmp",0,13000),
 			(assign,reg0,":iplength"),
 			(assign,reg1,":port"),
 			(assign,reg2,":passwordlength"),
@@ -691,7 +734,7 @@ scripts = [
 
         #(str_store_string,s1, "@will travel to the {s0}"),
 
-        (display_message,"@{s0},{reg0},{reg1},{s1},{reg2}"),
+        #(display_message,"@{s0},{reg0},{reg1},{s1},{reg2}"),
         (str_store_string,s3, "@character menu reached"),
 		
 		(try_begin),
@@ -5617,13 +5660,13 @@ scripts = [
         (eq, ":num_strings", 1),
         (display_message, s0),#error will display in console window
     (try_end),
-    (display_message,"@url resp: {reg0},{reg1},{reg2},{reg3},{reg4},{reg5},{reg6},{reg7},{reg8},{reg9},{reg10},{reg11},{reg12},{reg13},{reg14},{reg15},{reg16},{reg17},{reg18},{reg19},{reg20},{reg21},{reg22},{reg23},{reg24}"),
+    #(display_message,"@url resp: {reg0},{reg1},{reg2},{reg3},{reg4},{reg5},{reg6},{reg7},{reg8},{reg9},{reg10},{reg11},{reg12},{reg13},{reg14},{reg15},{reg16},{reg17},{reg18},{reg19},{reg20},{reg21},{reg22},{reg23},{reg24}"),
     #(display_message,"@url response str regs: {s0},{s1},{s2},{s3},{s4},{s5}..."),
     (assign,":fired_event",reg0),
     (assign,":callback_id",reg1),
 	(try_begin),
         (eq,":fired_event",ow_db_event_test_connection),#test the connection
-		(display_message,"@db test connect successful {reg2}"),
+		#(display_message,"@db test connect successful {reg2}"),
     (else_try),
         (eq,":fired_event",ow_db_event_load_player),#that was the get player data event!
         (try_begin),
@@ -5642,7 +5685,7 @@ scripts = [
             (assign,":hitpoints",reg14),
 			(assign,":horse",reg15),
 
-            (display_message,"@before call :playerid:{reg3},dbmap:{reg4},traveldir:{reg5},posx:{reg6},posy:{reg7},posz:{reg8},mcposx:{reg9},mcposy:{reg10},mcposz:{reg11},team_id:{reg12},troop_id:{reg13},hitpoints:{reg14},horse{reg23}"),
+            #(display_message,"@before call :playerid:{reg3},dbmap:{reg4},traveldir:{reg5},posx:{reg6},posy:{reg7},posz:{reg8},mcposx:{reg9},mcposy:{reg10},mcposz:{reg11},team_id:{reg12},troop_id:{reg13},hitpoints:{reg14},horse{reg23}"),
 
 			#spawn agent and horse
             (call_script,"script_db_callback_handle_join",":local_player_id",":current_map_id",":direction",":posx",":posy",":posz",":mcposx",":mcposy",":mcposz",":team_id",":troop_id",":hitpoints",":horse"),   #reg0=event,reg1=callbackid,reg2=uid, so the rest is the right arguments
@@ -5694,7 +5737,7 @@ scripts = [
       (store_script_param, ":player_no", 1),
       (store_script_param, ":event_type", 2),
 	  (assign,reg0,":event_type"),
-	  	(display_message,"@received a message from server: {reg0}"),
+	  	#(display_message,"@received a message from server: {reg0}"),
 
       (try_begin),
         ###############
@@ -8275,7 +8318,7 @@ scripts = [
 		(multiplayer_send_int_to_server, ow_multiplayer_event_fade_out_agent, ":agent_id"),#fade out agent (server cares)
 		(player_get_unique_id, ":unique_player_id", ":new_player_player_no"),
 		(str_store_player_username, s0, ":new_player_player_no"),
-		(display_message,"@fake travel!spawn!"),
+		#(display_message,"@fake travel!spawn!"),
 		(call_script,"script_db_load_player_data",":unique_player_id",":new_player_player_no",ow_db_callback_handle_join),#will do the rest
 
 	  (else_try),
@@ -8309,9 +8352,9 @@ scripts = [
         ###############
         #CLIENT EVENTS#
         ###############
-		(display_message,"@i am a client and received the message and"),
+		#(display_message,"@i am a client and received the message and"),
         (neg|multiplayer_is_dedicated_server),
-		(display_message,"@i am not a dedicated server"),
+		#(display_message,"@i am not a dedicated server"),
         (try_begin),      
           (eq, ":event_type", multiplayer_event_return_renaming_server_allowed),
           (store_script_param, ":value", 3),
@@ -9039,7 +9082,7 @@ scripts = [
 		# OPEN WORLD -----------------------------------------------------------------------------------------------------------
         (else_try),
           (eq, ":event_type", ow_multiplayer_event_travel),
-		  (display_message,"@will travel now!"),
+		  #(display_message,"@will travel now!"),
           (store_script_param, ":travelflag", 3), # scene prop instance/Travel flag
           (store_script_param, ":unique_player_id", 4), # uid
           (store_script_param, ":instanceortravelflag", 5), # specifies, if travelflag has to be understood as prop instance id or as travelflag
@@ -9113,7 +9156,7 @@ scripts = [
               (try_end),
         (else_try),
           (eq, ":event_type", ow_multiplayer_event_master_player_joined_prsnt),#i am a known/unknown player and joined the master server, let me choose my spawn point.
-		  (display_message,"@gogogo, choose team!"),
+		  #(display_message,"@gogogo, choose team!"),
           (store_script_param, ":player_uid", 3), #what is my unique id?
           (store_script_param, ":worldinstance", 4), #in which open world am i ?
           ##GLOBAL VAR UNIQUE PLAYER ID SET HERE. ONCE.

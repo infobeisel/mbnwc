@@ -21,8 +21,14 @@ strings = [
     #scenes
     ("ow_scene_1", "map12345678901011"),
     ("ow_scene_2", "map12345678901012"),
-    ("ow_scene_3", "map12345678901013"),
+    ("ow_scene_3", "Iroquois County"),
     ("ow_multiscene_names_end","ow_multiscene_names_end"),
+	
+	#scene shorts
+    ("ow_scene_1_short", "m1"),
+    ("ow_scene_2_short", "m2"),
+    ("ow_scene_3_short", "Iroqu.Ct."),
+    ("ow_multiscene_short_names_end","ow_multiscene_names_end"),
 	
 	#presentations
 	("rs_at_base_camp","Respawn At Base Camp"),

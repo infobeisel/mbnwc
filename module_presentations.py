@@ -11931,6 +11931,10 @@ presentations = [
         (position_set_x, pos50, ":camera_x_pos"),
         (position_set_y, pos50, ":camera_y_pos"),
         (overlay_set_position, "$g_conquest_select_camera", pos50),
+		
+		#piluspalus map edge guideposts
+		(store_current_scene, ":cur_scene"),
+		(call_script,"script_db_get_neighbour_scene_ids",":cur_scene",ow_db_callback_neighbourscenes,ow_worldinstance),
     
     
         (presentation_set_duration, 999999),
