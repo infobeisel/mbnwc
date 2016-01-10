@@ -74,7 +74,7 @@ ow_multiplayer_scenes_end = "scn_ow_multiplayer_scenes_end"
 ow_multiplayer_scene_names_begin = "str_ow_scene_1"
 ow_multiplayer_scene_names_end = "str_ow_multiscene_names_end"
 
-ow_multiplayer_short_scene_names_begin = "ow_scene_1_short"
+ow_multiplayer_short_scene_names_begin = "str_ow_scene_1_short"
 ow_multiplayer_short_scene_names_end = "str_ow_multiscene_short_names_end"
 
 
@@ -315,8 +315,8 @@ multiplayer_troops_end = "trp_multiplayer_end"
 multiplayer_ai_troops_begin = "trp_british_infantry_ai"
 multiplayer_ai_troops_end = multiplayer_troops_begin
 
-multiplayer_scenes_begin = "scn_mp_arabian_harbour"
-multiplayer_scenes_end = "scn_multiplayer_maps_end"
+multiplayer_scenes_begin = "scn_ow_scene_1"
+multiplayer_scenes_end = "scn_ow_multiplayer_scenes_end"
 
 multiplayer_scene_names_begin = "str_mp_arabian_harbour"
 multiplayer_scene_names_end = "str_multi_scene_end"
