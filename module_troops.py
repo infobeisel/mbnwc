@@ -444,8 +444,7 @@ troops = [
   #["british_infantry","33rd Regiment of Foot","Line Infantry",tf_guarantee_all,0,0,fac_britain,
    #[itm_british_infantry_ranker,itm_french_voltigeur_officer_pants,itm_33_stovepipe,itm_british_brown_bess,itm_bullets],
    #def_attrib_multiplayer|level(20),wpex(50,5,130,5,150,5),knows_common|knows_ironflesh_3|knows_power_strike_3|knows_athletics_3,swadian_face_middle_1, swadian_face_old_2],
-  ["british_infantry","33rd Regiment of Foot","Line Infantry",tf_guarantee_all,0,0,fac_britain,
-   [itm_british_infantry_ranker,itm_french_voltigeur_officer_pants,itm_independent_kentucky_rifle,itm_native_iroquois_tomahawk,itm_native_iroquois_tomahawk_melee,itm_native_cherokee_tomahawk,itm_native_cherokee_tomahawk_melee,itm_native_headache_club],
+  ["british_infantry","33rd Regiment of Foot","Line Infantry",tf_guarantee_all,0,0,fac_britain,[itm_british_infantry_ranker,itm_french_voltigeur_officer_pants,itm_33_stovepipe,itm_british_brown_bess,itm_bullets],   #[itm_british_infantry_ranker,itm_french_voltigeur_officer_pants,itm_independent_kentucky_rifle,itm_native_iroquois_tomahawk,itm_native_iroquois_tomahawk_melee,itm_native_cherokee_tomahawk,itm_native_cherokee_tomahawk_melee,itm_native_headache_club],
    def_attrib_multiplayer|level(20),wpex(50,5,130,5,150,5),knows_common|knows_ironflesh_3|knows_power_strike_3|knows_athletics_3,khergit_face_middle_1, khergit_face_old_2],
   #New World Conflict Troops
   #["british_cherokee_warrior","Cherokee Warrior","Cherokee Warriors",tf_guarantee_all,0,0,fac_britain,
